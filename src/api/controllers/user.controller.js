@@ -1,5 +1,5 @@
 const httpStatus = require('http-status');
-const { omit } = require('lodash');
+const R = require('ramda');
 const User = require('../models/user.model');
 const { handler: errorHandler } = require('../middlewares/error');
 
@@ -53,7 +53,7 @@ exports.replace = async (req, res, next) => {
     const { user } = req.locals;
     const newUser = new User(req.body);
     const ommitRole = user.role !== 'admin' ? 'role' : '';
-    const newUserObject = omit(newUser.toObject(), '_id', ommitRole);
+    const newUserObject = R.omit(['_id', ommitRole, newUser.toObject()]);
 
     await user.update(newUserObject, { override: true, upsert: true });
     const savedUser = await User.findById(user._id);
@@ -70,7 +70,7 @@ exports.replace = async (req, res, next) => {
  */
 exports.update = (req, res, next) => {
   const ommitRole = req.locals.user.role !== 'admin' ? 'role' : '';
-  const updatedUser = omit(req.body, ommitRole);
+  const updatedUser = R.omit(ommitRole, req.body);
   const user = Object.assign(req.locals.user, updatedUser);
 
   user.save()

@@ -1,6 +1,6 @@
 const mongoose = require('mongoose');
 const httpStatus = require('http-status');
-const { omitBy, isNil } = require('lodash');
+const R = require('ramda');
 const bcrypt = require('bcryptjs');
 const moment = require('moment-timezone');
 const jwt = require('jwt-simple');
@@ -176,7 +176,7 @@ userSchema.statics = {
   list({
     page = 1, perPage = 30, name, email, role,
   }) {
-    const options = omitBy({ name, email, role }, isNil);
+    const options = R.reject(R.isNil, { name, email, role });
 
     return this.find(options)
       .sort({ createdAt: -1 })

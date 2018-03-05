@@ -5,7 +5,7 @@ const httpStatus = require('http-status');
 const { expect } = require('chai');
 const sinon = require('sinon');
 const bcrypt = require('bcryptjs');
-const { some, omitBy, isNil } = require('lodash');
+const R = require('ramda');
 const app = require('../../../index');
 const User = require('../../models/user.model');
 const JWT_EXPIRATION = require('../../../config/vars').jwtExpirationInterval;
@@ -24,7 +24,7 @@ async function format(user) {
   const dbUser = (await User.findOne({ email: user.email })).transform();
 
   // remove null and undefined properties
-  return omitBy(dbUser, isNil);
+  return R.reject(R.isNil, dbUser);
 }
 
 describe('Users API', async () => {
@@ -174,8 +174,8 @@ describe('Users API', async () => {
           const bran = format(dbUsers.branStark);
           const john = format(dbUsers.jonSnow);
 
-          const includesBranStark = some(res.body, bran);
-          const includesjonSnow = some(res.body, john);
+          const includesBranStark = R.any(bran, res.body);
+          const includesjonSnow = R.any(john, res.body);
 
           // before comparing it is necessary to convert String to Date
           res.body[0].createdAt = new Date(res.body[0].createdAt);
@@ -197,7 +197,7 @@ describe('Users API', async () => {
         .then((res) => {
           delete dbUsers.jonSnow.password;
           const john = format(dbUsers.jonSnow);
-          const includesjonSnow = some(res.body, john);
+          const includesjonSnow = R.any(john, res.body);
 
           // before comparing it is necessary to convert String to Date
           res.body[0].createdAt = new Date(res.body[0].createdAt);
@@ -217,7 +217,7 @@ describe('Users API', async () => {
         .then((res) => {
           delete dbUsers.jonSnow.password;
           const john = format(dbUsers.jonSnow);
-          const includesjonSnow = some(res.body, john);
+          const includesjonSnow = R.any(john, res.body);
 
           // before comparing it is necessary to convert String to Date
           res.body[0].createdAt = new Date(res.body[0].createdAt);
