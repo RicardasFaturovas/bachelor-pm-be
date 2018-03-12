@@ -12,6 +12,7 @@ const { env, jwtSecret, jwtExpirationInterval } = require('../../config/vars');
 * User Roles
 */
 const roles = ['user', 'admin'];
+const genders = ['male', 'female'];
 
 /**
  * User Schema
@@ -38,6 +39,30 @@ const userSchema = new mongoose.Schema({
     index: true,
     trim: true,
   },
+  lastName: {
+    type: String,
+    maxlength: 128,
+    index: true,
+    trim: true,
+  },
+  birthYear: {
+    type: Number,
+    maxlength: 4,
+    index: true,
+    trim: true,
+  },
+  Occupation: {
+    type: String,
+    maxlength: 128,
+    index: true,
+    trim: true,
+  },
+  Gender: {
+    type: String,
+    enum: genders,
+    index: true,
+    trim: true,
+  },
   services: {
     facebook: String,
     google: String,
@@ -51,6 +76,10 @@ const userSchema = new mongoose.Schema({
     type: String,
     trim: true,
   },
+  projects: [{
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'Project',
+  }],
 }, {
   timestamps: true,
 });
@@ -82,7 +111,15 @@ userSchema.pre('save', async function save(next) {
 userSchema.method({
   transform() {
     const transformed = {};
-    const fields = ['id', 'name', 'email', 'picture', 'role', 'createdAt'];
+    const fields = [
+      'id',
+      'name',
+      'email',
+      'picture',
+      'role',
+      'createdAt',
+      'projects',
+    ];
 
     fields.forEach((field) => {
       transformed[field] = this[field];
@@ -123,7 +160,9 @@ userSchema.statics = {
       let user;
 
       if (mongoose.Types.ObjectId.isValid(id)) {
-        user = await this.findById(id).exec();
+        user = await this.findById(id)
+          .populate('projects', '_id')
+          .exec();
       }
       if (user) {
         return user;

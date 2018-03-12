@@ -27,7 +27,14 @@ exports.get = (req, res) => res.json(req.locals.user.transform());
  * Get logged in user info
  * @public
  */
-exports.loggedIn = (req, res) => res.json(req.user.transform());
+exports.loggedIn = async (req, res, next) => {
+  try {
+    const user = await User.get(req.user.id);
+    res.json(user.transform());
+  } catch (error) {
+    next(error);
+  }
+};
 
 /**
  * Create new user
@@ -70,7 +77,7 @@ exports.replace = async (req, res, next) => {
  */
 exports.update = (req, res, next) => {
   const ommitRole = req.locals.user.role !== 'admin' ? 'role' : '';
-  const updatedUser = R.omit(ommitRole, req.body);
+  const updatedUser = R.omit([ommitRole], req.body);
   const user = Object.assign(req.locals.user, updatedUser);
 
   user.save()
