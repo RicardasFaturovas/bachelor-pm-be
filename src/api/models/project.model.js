@@ -12,6 +12,15 @@ const projectSchema = new mongoose.Schema({
     index: true,
     trim: true,
   },
+  startDate: {
+    type: Date,
+    default: Date.now(),
+  },
+  description: {
+    type: String,
+    maxlength: 500,
+    trim: true,
+  },
   picture: {
     type: String,
     trim: true,
@@ -33,14 +42,17 @@ projectSchema.method({
     const transformed = {};
     const fields = [
       'name',
+      'description',
+      'startDate',
+      'picture',
       'createdAt',
       'creatorId',
       'users',
     ];
 
-    fields.forEach((field) => {
+    R.forEach((field) => {
       transformed[field] = this[field];
-    });
+    }, fields);
 
     return transformed;
   },
