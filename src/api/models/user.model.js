@@ -1,6 +1,6 @@
 const mongoose = require('mongoose');
 const httpStatus = require('http-status');
-const R = require('ramda');
+const { reject, isNil } = require('ramda');
 const bcrypt = require('bcryptjs');
 const moment = require('moment-timezone');
 const jwt = require('jwt-simple');
@@ -33,15 +33,23 @@ const userSchema = new mongoose.Schema({
     minlength: 6,
     maxlength: 128,
   },
+  passwordRepeat: {
+    type: String,
+    required: true,
+    minlength: 6,
+    maxlength: 128,
+  },
   name: {
     type: String,
     maxlength: 128,
+    required: true,
     index: true,
     trim: true,
   },
   lastName: {
     type: String,
     maxlength: 128,
+    required: true,
     index: true,
     trim: true,
   },
@@ -51,15 +59,21 @@ const userSchema = new mongoose.Schema({
     index: true,
     trim: true,
   },
-  Occupation: {
+  occupation: {
     type: String,
     maxlength: 128,
     index: true,
     trim: true,
   },
-  Gender: {
+  gender: {
     type: String,
     enum: genders,
+    index: true,
+    trim: true,
+  },
+  phone: {
+    type: String,
+    maxlength: 20,
     index: true,
     trim: true,
   },
@@ -84,12 +98,6 @@ const userSchema = new mongoose.Schema({
   timestamps: true,
 });
 
-/**
- * Add your
- * - pre-save hooks
- * - validations
- * - virtuals
- */
 userSchema.pre('save', async function save(next) {
   try {
     if (!this.isModified('password')) return next();
@@ -178,6 +186,26 @@ userSchema.statics = {
   },
 
   /**
+   * Check if passwords match
+   *
+   * @param {User} user - The request user object.
+   * @param {string} oldPassword - The old user password.
+   * @param {string} newPassword - The new user password.
+   * @returns {Promise<string, APIError>}
+   */
+  async hashNewPassword(user, oldPassword, newPassword) {
+    const rounds = env === 'test' ? 1 : 10;
+    if (await user.passwordMatches(oldPassword)) {
+      const hash = await bcrypt.hash(newPassword, rounds);
+      return hash;
+    }
+    throw new APIError({
+      message: 'Old password is incorrect',
+      status: httpStatus.UNAUTHORIZED,
+    });
+  },
+
+  /**
    * Find user by email and tries to generate a JWT token
    *
    * @param {ObjectId} id - The objectId of user.
@@ -215,7 +243,7 @@ userSchema.statics = {
   list({
     page = 1, perPage = 30, name, email, role,
   }) {
-    const options = R.reject(R.isNil, { name, email, role });
+    const options = reject(isNil, { name, email, role });
 
     return this.find(options)
       .sort({ createdAt: -1 })

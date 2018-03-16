@@ -1,5 +1,5 @@
 const mongoose = require('mongoose');
-const R = require('ramda');
+const { forEach, reject, isNil } = require('ramda');
 /**
  * Project Schema
  * @private
@@ -50,7 +50,7 @@ projectSchema.method({
       'users',
     ];
 
-    R.forEach((field) => {
+    forEach((field) => {
       transformed[field] = this[field];
     }, fields);
 
@@ -69,7 +69,7 @@ projectSchema.statics = {
   list({
     page = 1, perPage = 30, creatorId, name,
   }) {
-    const options = R.reject(R.isNil, { name, creatorId });
+    const options = reject(isNil, { name, creatorId });
 
     return this.find(options)
       .populate('creatorId', '_id')

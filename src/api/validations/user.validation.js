@@ -49,4 +49,12 @@ module.exports = {
       userId: Joi.string().regex(/^[a-fA-F0-9]{24}$/).required(),
     },
   },
+
+  // PATCH /v1/users/update-password
+  updateUserPassword: {
+    body: {
+      oldPassword: Joi.string().min(6).max(128).required(),
+      newPassword: Joi.string().min(6).max(128).required(),
+    },
+  },
 };

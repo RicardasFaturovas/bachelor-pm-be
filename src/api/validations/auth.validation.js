@@ -6,6 +6,13 @@ module.exports = {
     body: {
       email: Joi.string().email().required(),
       password: Joi.string().required().min(6).max(128),
+      repeatPassword: Joi.ref('password'),
+      name: Joi.string().required().max(128).required(),
+      lastName: Joi.string().required().max(128).required(),
+      birthYear: Joi.number().max(4).required(),
+      gender: Joi.string().allow('male', 'female').required(),
+      phone: Joi.string().max(20).default(''),
+      occupation: Joi.string().default(''),
     },
   },
 

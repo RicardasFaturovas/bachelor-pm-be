@@ -1,5 +1,5 @@
 const httpStatus = require('http-status');
-const R = require('ramda');
+const { append, merge, map } = require('ramda');
 
 const Project = require('../models/project.model');
 
@@ -11,11 +11,11 @@ exports.create = async (req, res, next) => {
   try {
     const { _id: creatorId } = req.user;
     const users = [{ _id: creatorId }];
-    const project = new Project(R.merge(req.body, { creatorId, users }));
+    const project = new Project(merge(req.body, { creatorId, users }));
     const savedProject = await project.save();
 
     const user = { req };
-    user.projects = R.append(project, user.projects);
+    user.projects = append(project, user.projects);
     user.save();
 
     res.status(httpStatus.CREATED);
@@ -32,7 +32,7 @@ exports.create = async (req, res, next) => {
 exports.list = async (req, res, next) => {
   try {
     const projects = await Project.list(req.query);
-    const transformedProjects = R.map(project => project.transform(), projects);
+    const transformedProjects = map(project => project.transform(), projects);
     res.json(transformedProjects);
   } catch (error) {
     next(error);
@@ -42,9 +42,9 @@ exports.list = async (req, res, next) => {
 exports.getProjectList = async (req, res, next) => {
   try {
     const { _id: creatorId } = req.user;
-    const queryOptions = R.merge(req.query, { creatorId });
+    const queryOptions = merge(req.query, { creatorId });
     const projects = await Project.list(queryOptions);
-    const transformedProjects = R.map(project => project.transform(), projects);
+    const transformedProjects = map(project => project.transform(), projects);
     res.json(transformedProjects);
   } catch (error) {
     next(error);

@@ -1,5 +1,5 @@
 const httpStatus = require('http-status');
-const R = require('ramda');
+const { omit } = require('ramda');
 const User = require('../models/user.model');
 const { handler: errorHandler } = require('../middlewares/error');
 
@@ -60,7 +60,7 @@ exports.replace = async (req, res, next) => {
     const { user } = req.locals;
     const newUser = new User(req.body);
     const ommitRole = user.role !== 'admin' ? 'role' : '';
-    const newUserObject = R.omit(['_id', ommitRole], newUser.toObject());
+    const newUserObject = omit(['_id', ommitRole], newUser.toObject());
 
     await user.update(newUserObject, { override: true, upsert: true });
     const savedUser = await User.findById(user._id);
@@ -77,12 +77,30 @@ exports.replace = async (req, res, next) => {
  */
 exports.update = (req, res, next) => {
   const ommitRole = req.locals.user.role !== 'admin' ? 'role' : '';
-  const updatedUser = R.omit([ommitRole], req.body);
+  const updatedUser = omit([ommitRole], req.body);
   const user = Object.assign(req.locals.user, updatedUser);
 
   user.save()
     .then(savedUser => res.json(savedUser.transform()))
     .catch(e => next(User.checkDuplicateEmail(e)));
+};
+
+/**
+ * Update existing user's passcode
+ * @public
+ */
+exports.updatePassword = async (req, res, next) => {
+  try {
+    const user = await User.get(req.user._id);
+    const passwordHash = await User
+      .hashNewPassword(user, req.body.oldPassword, req.body.newPassword);
+    user.password = passwordHash;
+
+    const savedUser = await user.save();
+    res.json({ success: !!savedUser });
+  } catch (error) {
+    next(error);
+  }
 };
 
 /**
