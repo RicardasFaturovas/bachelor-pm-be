@@ -171,15 +171,15 @@ describe('Users API', async () => {
         .set('Authorization', `Bearer ${adminAccessToken}`)
         .expect(httpStatus.OK)
         .then(async (res) => {
-          const bran = format(dbUsers.branStark);
-          const john = format(dbUsers.jonSnow);
-
-          const includesBranStark = R.any(bran, res.body);
-          const includesjonSnow = R.any(john, res.body);
+          const bran = await format(dbUsers.branStark);
+          const john = await format(dbUsers.jonSnow);
 
           // before comparing it is necessary to convert String to Date
           res.body[0].createdAt = new Date(res.body[0].createdAt);
           res.body[1].createdAt = new Date(res.body[1].createdAt);
+
+          const includesBranStark = R.contains(bran, res.body);
+          const includesjonSnow = R.contains(john, res.body);
 
           expect(res.body).to.be.an('array');
           expect(res.body).to.have.lengthOf(2);
@@ -194,13 +194,13 @@ describe('Users API', async () => {
         .set('Authorization', `Bearer ${adminAccessToken}`)
         .query({ page: 2, perPage: 1 })
         .expect(httpStatus.OK)
-        .then((res) => {
+        .then(async (res) => {
           delete dbUsers.jonSnow.password;
-          const john = format(dbUsers.jonSnow);
-          const includesjonSnow = R.any(john, res.body);
-
+          const john = await format(dbUsers.jonSnow);
           // before comparing it is necessary to convert String to Date
           res.body[0].createdAt = new Date(res.body[0].createdAt);
+
+          const includesjonSnow = R.contains(john, res.body);
 
           expect(res.body).to.be.an('array');
           expect(res.body).to.have.lengthOf(1);
@@ -214,13 +214,14 @@ describe('Users API', async () => {
         .set('Authorization', `Bearer ${adminAccessToken}`)
         .query({ email: dbUsers.jonSnow.email })
         .expect(httpStatus.OK)
-        .then((res) => {
+        .then(async (res) => {
           delete dbUsers.jonSnow.password;
-          const john = format(dbUsers.jonSnow);
-          const includesjonSnow = R.any(john, res.body);
+          const john = await format(dbUsers.jonSnow);
 
           // before comparing it is necessary to convert String to Date
           res.body[0].createdAt = new Date(res.body[0].createdAt);
+
+          const includesjonSnow = R.contains(john, res.body);
 
           expect(res.body).to.be.an('array');
           expect(res.body).to.have.lengthOf(1);
@@ -464,7 +465,7 @@ describe('Users API', async () => {
         });
     });
 
-    it('should not update the role of the user (not admin)', async () => {
+    it.only('should not update the role of the user (not admin)', async () => {
       const id = (await User.findOne({ email: dbUsers.jonSnow.email }))._id;
       const role = 'admin';
 
