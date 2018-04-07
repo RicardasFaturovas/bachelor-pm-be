@@ -56,7 +56,7 @@ router
 router
   .route('/create-project')
   /**
-   * @api {post} v1/projects Create Project
+   * @api {post} v1/projects/create-project Create Project
    * @apiDescription Create a new project
    * @apiVersion 1.0.0
    * @apiName CreateProject
@@ -65,8 +65,10 @@ router
    *
    * @apiHeader {String} Authorization  Users's access token
    *
-   * @apiParam  {String}             name     Project name
-
+   * @apiParam  {String}             name           Project name
+   * @apiParam  {Date}               startDate      Project start date, default current time
+   * @apiParam  {User[]}             users          Project list of user ids
+   * @apiParam  {String}             description    Project description
    *
    * @apiSuccess (Created 201) {String}  name       Project's name
    * @apiSuccess (Created 201) {String}  creatorId  Creator's id
@@ -74,8 +76,11 @@ router
    *
    * @apiError (Bad Request 400)   ValidationError  Some parameters contain invalid values
    * @apiError (Unauthorized 401)  Unauthorized     Only authenticated users can create the data
-   * @apiError (Forbidden 403)     Forbidden        Only admins can create the data
    */
   .post(authorize(), validate(createProject), controller.create);
+
+router
+  .route('/delete-project')
+  .delete(authorize(), controller.remove);
 
 module.exports = router;
