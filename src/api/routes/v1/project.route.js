@@ -2,7 +2,7 @@ const express = require('express');
 const controller = require('../../controllers/project.controller');
 const validate = require('express-validation');
 const { authorize } = require('../../middlewares/auth');
-const { createProject } = require('../../validations/project.validation');
+const { createProject, updateProject } = require('../../validations/project.validation');
 
 const router = express.Router();
 
@@ -81,6 +81,25 @@ router
 
 router
   .route('/delete-project')
+  /**
+   * @api {delete} v1/projects/delete-project Delete Project
+   * @apiDescription Delete an existing project
+   * @apiVersion 1.0.0
+   * @apiName DeleteProject
+   * @apiGroup Project
+   * @apiPermission user
+   *
+   * @apiHeader {String} Authorization  Users's access token
+   *
+   * @apiSuccess (No Content 204)  Successfully deleted
+   *
+   * @apiError (Unauthorized 401) Unauthorized  Only authenticated users can delete the data
+   * @apiError (Not Found 404)    NotFound      Project does not exist
+   */
   .delete(authorize(), controller.remove);
+
+router
+  .route('/update-project')
+  .patch(authorize(), validate(updateProject), controller.update);
 
 module.exports = router;

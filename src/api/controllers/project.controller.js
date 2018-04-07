@@ -71,3 +71,21 @@ exports.remove = async (req, res, next) => {
     next(error);
   }
 };
+
+/**
+ * Update existing project
+ * @public
+ */
+exports.update = async (req, res, next) => {
+  try {
+    const { _id: creator } = req.user;
+    const project = await Project.get(req.body.name, creator);
+    const updatedProject = Object.assign(project, req.body);
+
+    const savedProject = await updatedProject.save();
+    res.json(savedProject.transform());
+  } catch (error) {
+    next(error);
+  }
+};
+

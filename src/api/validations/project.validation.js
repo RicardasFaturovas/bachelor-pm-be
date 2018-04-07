@@ -12,4 +12,14 @@ module.exports = {
       description: Joi.string().max(500),
     },
   },
+  updateProject: {
+    body: {
+      name: Joi.string().max(128).required(),
+      startDate: Joi.date().iso(),
+      users: Joi.array().items(Joi.object({
+        _id: Joi.string(),
+      })),
+      description: Joi.string().max(500),
+    },
+  },
 };
