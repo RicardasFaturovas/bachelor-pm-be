@@ -33,12 +33,6 @@ const userSchema = new mongoose.Schema({
     minlength: 6,
     maxlength: 128,
   },
-  passwordRepeat: {
-    type: String,
-    required: true,
-    minlength: 6,
-    maxlength: 128,
-  },
   name: {
     type: String,
     maxlength: 128,
@@ -122,11 +116,13 @@ userSchema.method({
     const fields = [
       'id',
       'name',
+      'lastname',
       'email',
       'picture',
-      'role',
       'createdAt',
-      'projects',
+      'birthYear',
+      'occupation',
+      'phone',
     ];
 
     fields.forEach((field) => {

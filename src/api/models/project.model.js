@@ -25,13 +25,21 @@ const projectSchema = new mongoose.Schema({
     type: String,
     trim: true,
   },
-  creatorId: {
+  creator: {
     type: mongoose.Schema.Types.ObjectId,
     ref: 'User',
   },
   users: [{
     type: mongoose.Schema.Types.ObjectId,
     ref: 'User',
+  }],
+  sprints: [{
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'Sprint',
+  }],
+  stories: [{
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'Story',
   }],
 }, {
   timestamps: true,
@@ -46,8 +54,10 @@ projectSchema.method({
       'startDate',
       'picture',
       'createdAt',
-      'creatorId',
+      'creator',
       'users',
+      'sprints',
+      'stories',
     ];
 
     forEach((field) => {
@@ -62,21 +72,15 @@ projectSchema.statics = {
   /**
    * List projects in descending order of 'createdAt' timestamp.
    *
-   * @param {number} skip - Number of projects to be skipped.
-   * @param {number} limit - Limit number of projects to be returned.
    * @returns {Promise<Project[]>}
    */
-  list({
-    page = 1, perPage = 30, creatorId, name,
-  }) {
+  list({ creatorId, name }) {
     const options = reject(isNil, { name, creatorId });
 
     return this.find(options)
-      .populate('creatorId', '_id')
-      .populate('users', '_id')
+      .populate('stories', ['status'])
+      .populate('sprints', ['indicator'])
       .sort({ createdAt: -1 })
-      .skip(perPage * (page - 1))
-      .limit(perPage)
       .exec();
   },
 };
