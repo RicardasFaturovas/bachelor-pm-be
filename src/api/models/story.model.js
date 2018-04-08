@@ -1,7 +1,8 @@
 const mongoose = require('mongoose');
-const timeSchema = require('./time.schema').schema;
+const httpStatus = require('http-status');
+const { schema: timeSchema, formatTime } = require('./time.schema');
 const { forEach, reject, isNil } = require('ramda');
-
+const APIError = require('../utils/APIError');
 /**
  * Story Schema
  * @private
@@ -89,6 +90,7 @@ storySchema.method({
   detailedTransform() {
     const transformed = {};
     const fields = [
+      '_id',
       'code',
       'name',
       'description',
@@ -110,6 +112,20 @@ storySchema.method({
   },
 });
 
+storySchema.pre('save', function save(next) {
+  try {
+    if (this.loggedTime) {
+      this.loggedTime = formatTime(this.loggedTime);
+    }
+    if (this.estimatedTime) {
+      this.estimatedTime = formatTime(this.estimatedTime);
+    }
+    return next();
+  } catch (error) {
+    return next(error);
+  }
+});
+
 storySchema.statics = {
   /**
    * List stories in descending order of 'createdAt' timestamp.
@@ -122,7 +138,7 @@ storySchema.statics = {
     const options = reject(isNil, { code, project });
 
     return this.find(options)
-      .populate('creatopr', ['id', 'name', 'lastname'])
+      .populate('creator', ['id', 'name', 'lastname'])
       .sort({ createdAt: -1 })
       .exec();
   },
@@ -142,6 +158,35 @@ storySchema.statics = {
       // .populate('sprint', ['_id', 'indicator'])
       .sort({ createdAt: -1 })
       .exec();
+  },
+
+  /**
+   * Get story
+   *
+   * @param {String} project - The id of the project.
+   * @param {String} code - The code of the story.
+   * @returns {Promise<Project, APIError>}
+   */
+  async get(project, code) {
+    try {
+      const story = await this.findOne({
+        $and: [
+          { project },
+          { code },
+        ],
+      }).exec();
+
+      if (story) {
+        return story;
+      }
+
+      throw new APIError({
+        message: 'Story does not exist',
+        status: httpStatus.NOT_FOUND,
+      });
+    } catch (error) {
+      throw error;
+    }
   },
 };
 

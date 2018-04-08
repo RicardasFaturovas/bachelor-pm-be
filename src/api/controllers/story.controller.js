@@ -68,3 +68,20 @@ exports.getStorySummary = async (req, res, next) => {
   }
 };
 
+/**
+ * Update existing story
+ * @public
+ */
+exports.updateStory = async (req, res, next) => {
+  try {
+    const { _id: creator } = req.user;
+    const project = await Project.get(req.params.projectName, creator);
+    const story = await Story.get(project._id, req.params.storyCode);
+    const updatedStory = Object.assign(story, req.body);
+
+    const savedStory = await updatedStory.save();
+    res.json(savedStory.detailedTransform());
+  } catch (error) {
+    next(error);
+  }
+};
