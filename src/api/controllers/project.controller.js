@@ -63,7 +63,7 @@ exports.getProjectList = async (req, res, next) => {
 exports.remove = async (req, res, next) => {
   try {
     const { _id: creator } = req.user;
-    const project = await Project.get(req.query.name, creator);
+    const project = await Project.get(req.params.name, creator);
     const removedProject = project.remove();
     removedProject
       .then(() => res.status(httpStatus.NO_CONTENT).end());
@@ -79,7 +79,7 @@ exports.remove = async (req, res, next) => {
 exports.update = async (req, res, next) => {
   try {
     const { _id: creator } = req.user;
-    const project = await Project.get(req.body.name, creator);
+    const project = await Project.get(req.params.name, creator);
     const updatedProject = Object.assign(project, req.body);
 
     const savedProject = await updatedProject.save();

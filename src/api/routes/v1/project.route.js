@@ -7,31 +7,6 @@ const { createProject, updateProject } = require('../../validations/project.vali
 const router = express.Router();
 
 router
-  .route('/')
-  /**
-   * @api {get} v1/projects List Projects
-   * @apiDescription Get a list of projects
-   * @apiVersion 1.0.0
-   * @apiName ListProjects
-   * @apiGroup Project
-   * @apiPermission admin
-   *
-   * @apiHeader {String} Authorization  User's access token
-   *
-   * @apiParam  {Number{1-}}         [page=1]     List page
-   * @apiParam  {Number{1-100}}      [perPage=1]  Projects per page
-   * @apiParam  {String}             [name]       Project's name
-   * @apiParam  {String}             [email]      Project's email
-   * @apiParam  {String=user,admin}  [role]       Project's role
-   *
-   * @apiSuccess {Object[]} projects List of projects.
-   *
-   * @apiError (Unauthorized 401)  Unauthorized  Only authenticated users can access the data
-   * @apiError (Forbidden 403)     Forbidden     Only admins can access the data
-   */
-  .get(controller.list);
-
-router
   .route('/project-list')
   /**
    * @api {get} v1/projects List User Projects
@@ -65,10 +40,10 @@ router
    *
    * @apiHeader {String} Authorization  Users's access token
    *
-   * @apiParam  {String}             name           Project name
-   * @apiParam  {Date}               startDate      Project start date, default current time
-   * @apiParam  {User[]}             users          Project list of user ids
-   * @apiParam  {String}             description    Project description
+   * @apiParam  {String}  name          Project name
+   * @apiParam  {Date}    startDate     Project start date, default current time
+   * @apiParam  {User[]}  users         Project list of user ids
+   * @apiParam  {String}  description   Project description
    *
    * @apiSuccess (Created 201) {String}  name       Project's name
    * @apiSuccess (Created 201) {String}  creatorId  Creator's id
@@ -80,9 +55,9 @@ router
   .post(authorize(), validate(createProject), controller.create);
 
 router
-  .route('/delete-project')
+  .route('/:name/delete-project')
   /**
-   * @api {delete} v1/projects/delete-project Delete Project
+   * @api {delete} v1/projects/:name/delete-project Delete Project
    * @apiDescription Delete an existing project
    * @apiVersion 1.0.0
    * @apiName DeleteProject
@@ -99,7 +74,30 @@ router
   .delete(authorize(), controller.remove);
 
 router
-  .route('/update-project')
+  .route('/:name/update-project')
+  /**
+   * @api {patch} v1/projects/:name/update-project Update Project
+   * @apiDescription Update some fields of a project document
+   * @apiVersion 1.0.0
+   * @apiName UpdateProject
+   * @apiGroup Project
+   * @apiPermission user
+   *
+   * @apiHeader {String} Authorization  User's access token
+   *
+   * @apiParam  {String}  name          Project name
+   * @apiParam  {Date}    startDate     Project start date, default current time
+   * @apiParam  {User[]}  users         Project list of user ids
+   * @apiParam  {String}  description   Project description
+   *
+   * @apiSuccess (Created 201) {String}  name       Project's name
+   * @apiSuccess (Created 201) {String}  creatorId  Creator's id
+   * @apiSuccess (Created 201) {Date}    createdAt  Timestamp
+   *
+   * @apiError (Bad Request 400)  ValidationError  Some parameters may contain invalid values
+   * @apiError (Unauthorized 401) Unauthorized Only authenticated users can modify the data
+   * @apiError (Not Found 404)    NotFound     User does not exist
+   */
   .patch(authorize(), validate(updateProject), controller.update);
 
 module.exports = router;

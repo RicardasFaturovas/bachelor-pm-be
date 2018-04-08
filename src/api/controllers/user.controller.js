@@ -75,14 +75,16 @@ exports.replace = async (req, res, next) => {
  * Update existing user
  * @public
  */
-exports.update = (req, res, next) => {
-  const ommitRole = req.locals.user.role !== 'admin' ? 'role' : '';
-  const updatedUser = omit([ommitRole], req.body);
-  const user = Object.assign(req.locals.user, updatedUser);
+exports.update = async (req, res, next) => {
+  try {
+    const user = await User.get(req.user.id);
+    const updatedUser = Object.assign(user, req.body);
 
-  user.save()
-    .then(savedUser => res.json(savedUser.transform()))
-    .catch(e => next(User.checkDuplicateEmail(e)));
+    const savedUser = await updatedUser.save();
+    res.json(savedUser.transform());
+  } catch (e) {
+    next(e);
+  }
 };
 
 /**
