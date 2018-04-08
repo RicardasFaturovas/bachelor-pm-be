@@ -1,5 +1,5 @@
 const mongoose = require('mongoose');
-const timeSchema = require('./time.schema');
+const timeSchema = require('./time.schema').schema;
 const { forEach, reject, isNil } = require('ramda');
 
 /**
@@ -8,11 +8,12 @@ const { forEach, reject, isNil } = require('ramda');
  */
 const states = ['todo', 'inProgress', 'testing', 'done'];
 const priorities = ['blocker', 'critical', 'major', 'medium', 'minor'];
-
+const storyPoints = ['extraLarge', 'large', 'medium', 'small', 'extraSmall'];
 
 const storySchema = new mongoose.Schema({
   code: {
-    type: Number,
+    type: String,
+    index: true,
     required: true,
   },
   name: {
@@ -35,8 +36,17 @@ const storySchema = new mongoose.Schema({
     enum: priorities,
     required: true,
   },
+  storyPoints: {
+    type: String,
+    enum: storyPoints,
+    required: true,
+  },
   estimatedTime: timeSchema,
   loggedTime: timeSchema,
+  project: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'Project',
+  },
   sprint: {
     type: mongoose.Schema.Types.ObjectId,
     ref: 'Sprint',
@@ -64,12 +74,30 @@ storySchema.method({
       'code',
       'name',
       'description',
+      'priority',
+      'assignee',
+      'creator',
+    ];
+
+    forEach((field) => {
+      transformed[field] = this[field];
+    }, fields);
+
+    return transformed;
+  },
+
+  detailedTransform() {
+    const transformed = {};
+    const fields = [
+      'code',
+      'name',
+      'description',
       'state',
       'priority',
       'estimatedTime',
       'loggedTime',
       'creator',
-      'assigne',
+      'assignee',
       'createdAt',
       'tasks',
     ];
@@ -89,13 +117,29 @@ storySchema.statics = {
    * @returns {Promise<Story[]>}
    */
   list({
-    creator, code,
+    project, code,
   }) {
-    const options = reject(isNil, { code, creator });
+    const options = reject(isNil, { code, project });
 
     return this.find(options)
-      .populate('creator', ['name', 'lastname'])
-      .populate('assignee', ['name', 'lastname'])
+      .populate('creatopr', ['id', 'name', 'lastname'])
+      .sort({ createdAt: -1 })
+      .exec();
+  },
+  /**
+   *List stories in descending order of 'createdAt' timestamp with their details.
+   *
+   * @returns {Promise<Story[]>}
+   */
+  detailedView({
+    project, code,
+  }) {
+    const options = reject(isNil, { code, project });
+
+    return this.findOne(options)
+      .populate('assignee', ['_id', 'name', 'lastname'])
+      .populate('creator', ['_id', 'name', 'lastname'])
+      // .populate('sprint', ['_id', 'indicator'])
       .sort({ createdAt: -1 })
       .exec();
   },

@@ -80,7 +80,7 @@ projectSchema.statics = {
     const options = reject(isNil, { name, creatorId });
 
     return this.find(options)
-      // .populate('stories', ['status'])
+      .populate('stories', ['_id', 'status'])
       // .populate('sprints', ['indicator'])
       .sort({ createdAt: -1 })
       .exec();

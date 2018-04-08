@@ -7,7 +7,7 @@ const Project = require('../models/project.model');
  * Create new project
  * @public
  */
-exports.create = async (req, res, next) => {
+exports.createProject = async (req, res, next) => {
   try {
     const { _id: creator } = req.user;
     const users = [{ _id: creator }];
@@ -60,7 +60,7 @@ exports.getProjectList = async (req, res, next) => {
  * Delete project
  * @public
  */
-exports.remove = async (req, res, next) => {
+exports.removeProject = async (req, res, next) => {
   try {
     const { _id: creator } = req.user;
     const project = await Project.get(req.params.name, creator);
@@ -76,7 +76,7 @@ exports.remove = async (req, res, next) => {
  * Update existing project
  * @public
  */
-exports.update = async (req, res, next) => {
+exports.updateProject = async (req, res, next) => {
   try {
     const { _id: creator } = req.user;
     const project = await Project.get(req.params.name, creator);

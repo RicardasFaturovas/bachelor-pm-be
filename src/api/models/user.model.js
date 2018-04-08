@@ -37,38 +37,32 @@ const userSchema = new mongoose.Schema({
     type: String,
     maxlength: 128,
     required: true,
-    index: true,
     trim: true,
   },
   lastName: {
     type: String,
     maxlength: 128,
     required: true,
-    index: true,
     trim: true,
   },
   birthYear: {
     type: Number,
     maxlength: 4,
-    index: true,
     trim: true,
   },
   occupation: {
     type: String,
     maxlength: 128,
-    index: true,
     trim: true,
   },
   gender: {
     type: String,
     enum: genders,
-    index: true,
     trim: true,
   },
   phone: {
     type: String,
     maxlength: 20,
-    index: true,
     trim: true,
   },
   services: {
@@ -176,6 +170,30 @@ userSchema.statics = {
         message: 'User does not exist',
         status: httpStatus.NOT_FOUND,
       });
+    } catch (error) {
+      throw error;
+    }
+  },
+
+  /**
+   * Get user otherwise return null
+   *
+   * @param {ObjectId} id - The objectId of user.
+   * @returns {Promise<User, APIError>}
+   */
+  async getIfExists(id) {
+    try {
+      let user;
+
+      if (mongoose.Types.ObjectId.isValid(id)) {
+        user = await this.findById(id)
+          .populate('projects', '_id')
+          .exec();
+      }
+      if (user) {
+        return user;
+      }
+      return null;
     } catch (error) {
       throw error;
     }

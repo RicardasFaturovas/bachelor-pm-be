@@ -52,7 +52,7 @@ router
    * @apiError (Bad Request 400)   ValidationError  Some parameters contain invalid values
    * @apiError (Unauthorized 401)  Unauthorized     Only authenticated users can create the data
    */
-  .post(authorize(), validate(createProject), controller.create);
+  .post(authorize(), validate(createProject), controller.createProject);
 
 router
   .route('/:name/delete-project')
@@ -71,7 +71,7 @@ router
    * @apiError (Unauthorized 401) Unauthorized  Only authenticated users can delete the data
    * @apiError (Not Found 404)    NotFound      Project does not exist
    */
-  .delete(authorize(), controller.remove);
+  .delete(authorize(), controller.removeProject);
 
 router
   .route('/:name/update-project')
@@ -98,6 +98,6 @@ router
    * @apiError (Unauthorized 401) Unauthorized Only authenticated users can modify the data
    * @apiError (Not Found 404)    NotFound     User does not exist
    */
-  .patch(authorize(), validate(updateProject), controller.update);
+  .patch(authorize(), validate(updateProject), controller.updateProject);
 
 module.exports = router;

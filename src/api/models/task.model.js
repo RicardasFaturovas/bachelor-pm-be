@@ -1,5 +1,5 @@
 const mongoose = require('mongoose');
-const timeSchema = require('./time.schema');
+const timeSchema = require('./time.schema').schema;
 const { forEach, reject, isNil } = require('ramda');
 
 /**
