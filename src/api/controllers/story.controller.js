@@ -85,3 +85,20 @@ exports.updateStory = async (req, res, next) => {
     next(error);
   }
 };
+
+/**
+ * Delete story
+ * @public
+ */
+exports.removeStory = async (req, res, next) => {
+  try {
+    const { _id: creator } = req.user;
+    const project = await Project.get(req.params.projectName, creator);
+    const story = await Story.get(project._id, req.params.storyCode);
+    const removedStory = story.remove();
+    removedStory
+      .then(() => res.status(httpStatus.NO_CONTENT).end());
+  } catch (error) {
+    next(error);
+  }
+};

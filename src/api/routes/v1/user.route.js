@@ -56,7 +56,6 @@ router
    * @apiError (Bad Request 400)  ValidationError  Some parameters contain invalid values
    * @apiError (Unauthorized 401) Unauthorized Only authenticated users can modify the data
    * @apiError (Unauthorized 401) Unauthorized Old password is incorrect
-   * @apiError (Forbidden 403)    Forbidden    Only user with same id or admins can modify the data
    * @apiError (Not Found 404)    NotFound     User does not exist
    */
   .patch(authorize(), validate(updateUserPassword), controller.updatePassword);
@@ -82,7 +81,7 @@ router
    * @apiSuccess {String}  email      User's email
    * @apiSuccess {Date}    createdAt  Timestamp
    *
-   * @apiError (Bad Request 400)  ValidationError  Some parameters may contain invalid values
+   * @apiError (Bad Request 400)  ValidationError  Some parameters contain invalid values
    * @apiError (Unauthorized 401) Unauthorized Only authenticated users can modify the data
    * @apiError (Not Found 404)    NotFound     User does not exist
    */
