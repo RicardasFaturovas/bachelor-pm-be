@@ -65,14 +65,17 @@ const userSchema = new mongoose.Schema({
     maxlength: 20,
     trim: true,
   },
+  role: {
+    type: String,
+    enum: roles,
+  },
   services: {
     facebook: String,
     google: String,
   },
-  role: {
+  location: {
     type: String,
-    enum: roles,
-    default: 'user',
+    trim: true,
   },
   picture: {
     type: String,
@@ -113,10 +116,12 @@ userSchema.method({
       'lastname',
       'email',
       'picture',
+      'location',
+      'occupation',
       'createdAt',
       'birthYear',
-      'occupation',
       'phone',
+      'gender',
     ];
 
     fields.forEach((field) => {

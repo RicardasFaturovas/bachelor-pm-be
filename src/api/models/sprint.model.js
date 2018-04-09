@@ -33,6 +33,10 @@ const sprintSchema = new mongoose.Schema({
     type: mongoose.Schema.Types.ObjectId,
     ref: 'User',
   },
+  project: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'Project',
+  },
   stories: [{
     type: mongoose.Schema.Types.ObjectId,
     ref: 'Story',
@@ -49,6 +53,7 @@ sprintSchema.method({
       'time',
       'state',
       'creator',
+      'project',
       'assigne',
       'createdAt',
       'stories',
@@ -56,6 +61,10 @@ sprintSchema.method({
 
     forEach((field) => {
       transformed[field] = this[field];
+      transformed.period = {
+        startTime: this.time.days * this.indicator,
+        endTime: this.time.days * (this.indicator + 1),
+      };
     }, fields);
 
     return transformed;
@@ -68,14 +77,36 @@ sprintSchema.statics = {
    *
    * @returns {Promise<Sprint[]>}
    */
-  summaryList({ projectId, indicator }) {
-    const options = reject(isNil, { projectId, indicator });
+  list({ project }) {
+    const options = reject(isNil, { project });
 
     return this.find(options)
-      .populate('stories', ['status, loggedTime', 'estimatedTime'])
+      .populate('stories', ['state', 'loggedTime', 'estimatedTime'])
       .sort({ indicator: -1 })
       .exec();
   },
+
+  /**
+   * Find latest sprint otherwise return null
+   *
+   * @returns {Promise<User, APIError>}
+   */
+  async findLatest() {
+    try {
+      const sprint = await this.findOne()
+        .sort({ indicator: -1 })
+        .limit(1)
+        .exec();
+
+      if (sprint) {
+        return sprint;
+      }
+      return null;
+    } catch (error) {
+      throw error;
+    }
+  },
+
 };
 
 /**
