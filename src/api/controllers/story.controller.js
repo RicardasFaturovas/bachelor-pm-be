@@ -11,7 +11,7 @@ const Story = require('../models/story.model');
 exports.createStory = async (req, res, next) => {
   try {
     const { _id: creator } = req.user;
-    const project = await Project.get(req.params.projectName, creator);
+    const project = await Project.get(req.params.projectId);
     const { _id } = project;
     let assignee = await User.getIfExists(req.body.assignee);
 
@@ -41,7 +41,7 @@ exports.createStory = async (req, res, next) => {
 exports.getStoryList = async (req, res, next) => {
   try {
     const { _id: creator } = req.user;
-    const currentProject = await Project.get(req.params.projectName, creator);
+    const currentProject = await Project.get(req.params.projectId, creator);
     const { _id: project } = currentProject;
     const stories = await Story.list({ creator, project });
     const transformedStories = map(story => story.transform(), stories);
@@ -58,7 +58,7 @@ exports.getStoryList = async (req, res, next) => {
 exports.getStorySummary = async (req, res, next) => {
   try {
     const { _id: creator } = req.user;
-    const currentProject = await Project.get(req.params.projectName, creator);
+    const currentProject = await Project.get(req.params.projectId);
     const { _id: project } = currentProject;
     const story = await Story.detailedView({ creator, project });
     const transformedStory = story.detailedTransform();
@@ -74,8 +74,7 @@ exports.getStorySummary = async (req, res, next) => {
  */
 exports.updateStory = async (req, res, next) => {
   try {
-    const { _id: creator } = req.user;
-    const project = await Project.get(req.params.projectName, creator);
+    const project = await Project.get(req.params.projectId);
     const story = await Story.get(project._id, req.params.storyCode);
     const updatedStory = Object.assign(story, req.body);
 
@@ -92,8 +91,7 @@ exports.updateStory = async (req, res, next) => {
  */
 exports.removeStory = async (req, res, next) => {
   try {
-    const { _id: creator } = req.user;
-    const project = await Project.get(req.params.projectName, creator);
+    const project = await Project.get(req.params.projectId);
     const story = await Story.get(project._id, req.params.storyCode);
     const removedStory = story.remove();
     removedStory

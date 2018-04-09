@@ -55,9 +55,9 @@ router
   .post(authorize(), validate(createProject), controller.createProject);
 
 router
-  .route('/:name/delete-project')
+  .route('/:id/delete-project')
   /**
-   * @api {delete} v1/projects/:name/delete-project Delete Project
+   * @api {delete} v1/projects/:id/delete-project Delete Project
    * @apiDescription Delete an existing project
    * @apiVersion 1.0.0
    * @apiName DeleteProject
@@ -74,9 +74,9 @@ router
   .delete(authorize(), controller.removeProject);
 
 router
-  .route('/:name/update-project')
+  .route('/:id/update-project')
   /**
-   * @api {patch} v1/projects/:name/update-project Update Project
+   * @api {patch} v1/projects/:id/update-project Update Project
    * @apiDescription Update some fields of a project document
    * @apiVersion 1.0.0
    * @apiName UpdateProject

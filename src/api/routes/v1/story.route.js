@@ -7,9 +7,9 @@ const { createStory, updateStory } = require('../../validations/story.validation
 const router = express.Router();
 
 router
-  .route('/:projectName/story-list')
+  .route('/:projectId/story-list')
   /**
-   * @api {get} v1/stories/:projectName/storylist List all project stories
+   * @api {get} v1/stories/:projectId/storylist List all project stories
    * @apiDescription Get a list of the current stories in the project backlog
    * @apiVersion 1.0.0
    * @apiName ListProjectStories
@@ -25,9 +25,9 @@ router
   .get(authorize(), controller.getStoryList);
 
 router
-  .route('/:projectName/create-story')
+  .route('/:projectId/create-story')
   /**
-   * @api {post} v1/stories/:projectName/create-project Create Story
+   * @api {post} v1/stories/:projectId/create-project Create Story
    * @apiDescription Create a new story for the current project
    * @apiVersion 1.0.0
    * @apiName CreateStory
@@ -57,9 +57,9 @@ router
   .post(authorize(), validate(createStory), controller.createStory);
 
 router
-  .route('/:projectName/:storyCode/summary')
+  .route('/:projectId/:storyCode/summary')
   /**
-   * @api {get} v1/stories/:projectName/:storyCode/ Get story summary
+   * @api {get} v1/stories/:projectId/:storyCode/ Get story summary
    * @apiDescription Get detailed story summary
    * @apiVersion 1.0.0
    * @apiName GetStorySummary
@@ -86,9 +86,9 @@ router
   .get(authorize(), controller.getStorySummary);
 
 router
-  .route('/:projectName/:storyCode/update-story')
+  .route('/:projectId/:storyCode/update-story')
   /**
-   * @api {patch} v1/stories/:projectName/:storyCode/update-story Update story
+   * @api {patch} v1/stories/:projectId/:storyCode/update-story Update story
    * @apiDescription Update story document
    * @apiVersion 1.0.0
    * @apiName UpdateStory
@@ -124,9 +124,9 @@ router
   .patch(authorize(), validate(updateStory), controller.updateStory);
 
 router
-  .route('/:projectName/:storyCode/delete-story')
+  .route('/:projectId/:storyCode/delete-story')
   /**
-   * @api {patch} v1/stories/:projectName/:storyCode/delete-story Delete story
+   * @api {patch} v1/stories/:projectId/:storyCode/delete-story Delete story
    * @apiDescription Delete story document
    * @apiVersion 1.0.0
    * @apiName DeleteStory

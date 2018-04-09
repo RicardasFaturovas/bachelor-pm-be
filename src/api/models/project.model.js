@@ -10,8 +10,6 @@ const projectSchema = new mongoose.Schema({
   name: {
     type: String,
     maxlength: 128,
-    unique: true,
-    index: true,
     trim: true,
   },
   startDate: {
@@ -51,6 +49,7 @@ projectSchema.method({
   transform() {
     const transformed = {};
     const fields = [
+      'id',
       'name',
       'description',
       'startDate',
@@ -89,19 +88,17 @@ projectSchema.statics = {
   /**
    * Get project
    *
-   * @param {String} name - The name of the project.
-   * @param {String} creator - The creator of the project.
+   * @param {String} id - The id of the project.
    * @returns {Promise<Project, APIError>}
    */
-  async get(name, creator) {
+  async get(id) {
     try {
-      const project = await this.findOne({
-        $and: [
-          { name },
-          { creator },
-        ],
-      }).exec();
+      let project;
 
+      if (mongoose.Types.ObjectId.isValid(id)) {
+        project = await this.findById(id)
+          .exec();
+      }
       if (project) {
         return project;
       }
