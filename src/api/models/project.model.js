@@ -1,4 +1,6 @@
 const mongoose = require('mongoose');
+const APIError = require('../utils/APIError');
+const httpStatus = require('http-status');
 const { forEach, reject, isNil } = require('ramda');
 /**
  * Project Schema
@@ -8,8 +10,6 @@ const projectSchema = new mongoose.Schema({
   name: {
     type: String,
     maxlength: 128,
-    unique: true,
-    index: true,
     trim: true,
   },
   startDate: {
@@ -49,6 +49,7 @@ projectSchema.method({
   transform() {
     const transformed = {};
     const fields = [
+      'id',
       'name',
       'description',
       'startDate',
@@ -78,10 +79,38 @@ projectSchema.statics = {
     const options = reject(isNil, { name, creatorId });
 
     return this.find(options)
-      .populate('stories', ['status'])
-      .populate('sprints', ['indicator'])
+      .populate('stories', ['_id', 'status'])
+      // .populate('sprints', ['indicator'])
       .sort({ createdAt: -1 })
       .exec();
+  },
+
+  /**
+   * Get project
+   *
+   * @param {String} id - The id of the project.
+   * @returns {Promise<Project, APIError>}
+   */
+  async get(id) {
+    try {
+      let project;
+
+      if (mongoose.Types.ObjectId.isValid(id)) {
+        project = await this.findById(id)
+          .populate('stories', ['id', 'code'])
+          .exec();
+      }
+      if (project) {
+        return project;
+      }
+
+      throw new APIError({
+        message: 'Project does not exist',
+        status: httpStatus.NOT_FOUND,
+      });
+    } catch (error) {
+      throw error;
+    }
   },
 };
 

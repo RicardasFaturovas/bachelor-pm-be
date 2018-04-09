@@ -45,9 +45,6 @@ module.exports = {
       name: Joi.string().max(128),
       role: Joi.string().valid(User.roles),
     },
-    params: {
-      userId: Joi.string().regex(/^[a-fA-F0-9]{24}$/).required(),
-    },
   },
 
   // PATCH /v1/users/update-password

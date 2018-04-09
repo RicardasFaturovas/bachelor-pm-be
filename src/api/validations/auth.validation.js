@@ -9,7 +9,7 @@ module.exports = {
       repeatPassword: Joi.ref('password'),
       name: Joi.string().required().max(128).required(),
       lastName: Joi.string().required().max(128).required(),
-      birthYear: Joi.number().max(4).required(),
+      birthYear: Joi.number().positive().required(),
       gender: Joi.string().allow('male', 'female').required(),
       phone: Joi.string().max(20).default(''),
       occupation: Joi.string().default(''),

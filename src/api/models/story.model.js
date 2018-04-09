@@ -1,18 +1,20 @@
 const mongoose = require('mongoose');
-const timeSchema = require('./time.schema');
+const httpStatus = require('http-status');
+const { schema: timeSchema, formatTime } = require('./time.schema');
 const { forEach, reject, isNil } = require('ramda');
-
+const APIError = require('../utils/APIError');
 /**
  * Story Schema
  * @private
  */
 const states = ['todo', 'inProgress', 'testing', 'done'];
 const priorities = ['blocker', 'critical', 'major', 'medium', 'minor'];
-
+const storyPoints = ['extraLarge', 'large', 'medium', 'small', 'extraSmall'];
 
 const storySchema = new mongoose.Schema({
   code: {
-    type: Number,
+    type: String,
+    index: true,
     required: true,
   },
   name: {
@@ -35,8 +37,17 @@ const storySchema = new mongoose.Schema({
     enum: priorities,
     required: true,
   },
+  storyPoints: {
+    type: String,
+    enum: storyPoints,
+    required: true,
+  },
   estimatedTime: timeSchema,
   loggedTime: timeSchema,
+  project: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'Project',
+  },
   sprint: {
     type: mongoose.Schema.Types.ObjectId,
     ref: 'Sprint',
@@ -64,12 +75,31 @@ storySchema.method({
       'code',
       'name',
       'description',
+      'priority',
+      'assignee',
+      'creator',
+    ];
+
+    forEach((field) => {
+      transformed[field] = this[field];
+    }, fields);
+
+    return transformed;
+  },
+
+  detailedTransform() {
+    const transformed = {};
+    const fields = [
+      '_id',
+      'code',
+      'name',
+      'description',
       'state',
       'priority',
       'estimatedTime',
       'loggedTime',
       'creator',
-      'assigne',
+      'assignee',
       'createdAt',
       'tasks',
     ];
@@ -82,6 +112,20 @@ storySchema.method({
   },
 });
 
+storySchema.pre('save', function save(next) {
+  try {
+    if (this.loggedTime) {
+      this.loggedTime = formatTime(this.loggedTime);
+    }
+    if (this.estimatedTime) {
+      this.estimatedTime = formatTime(this.estimatedTime);
+    }
+    return next();
+  } catch (error) {
+    return next(error);
+  }
+});
+
 storySchema.statics = {
   /**
    * List stories in descending order of 'createdAt' timestamp.
@@ -89,15 +133,60 @@ storySchema.statics = {
    * @returns {Promise<Story[]>}
    */
   list({
-    creator, code,
+    project, code,
   }) {
-    const options = reject(isNil, { code, creator });
+    const options = reject(isNil, { code, project });
 
     return this.find(options)
-      .populate('creator', ['name', 'lastname'])
-      .populate('assignee', ['name', 'lastname'])
+      .populate('creator', ['id', 'name', 'lastname'])
       .sort({ createdAt: -1 })
       .exec();
+  },
+  /**
+   *List stories in descending order of 'createdAt' timestamp with their details.
+   *
+   * @returns {Promise<Story[]>}
+   */
+  detailedView({
+    project, code,
+  }) {
+    const options = reject(isNil, { code, project });
+
+    return this.findOne(options)
+      .populate('assignee', ['_id', 'name', 'lastname'])
+      .populate('creator', ['_id', 'name', 'lastname'])
+      // .populate('sprint', ['_id', 'indicator'])
+      .sort({ createdAt: -1 })
+      .exec();
+  },
+
+  /**
+   * Get story
+   *
+   * @param {String} project - The id of the project.
+   * @param {String} code - The code of the story.
+   * @returns {Promise<Project, APIError>}
+   */
+  async get(project, code) {
+    try {
+      const story = await this.findOne({
+        $and: [
+          { project },
+          { code },
+        ],
+      }).exec();
+
+      if (story) {
+        return story;
+      }
+
+      throw new APIError({
+        message: 'Story does not exist',
+        status: httpStatus.NOT_FOUND,
+      });
+    } catch (error) {
+      throw error;
+    }
   },
 };
 
