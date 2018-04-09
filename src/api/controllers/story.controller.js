@@ -1,5 +1,12 @@
 const httpStatus = require('http-status');
-const { append, merge, map } = require('ramda');
+const {
+  append,
+  merge,
+  map,
+  propEq,
+  find,
+} = require('ramda');
+const APIError = require('../utils/APIError');
 const User = require('../models/user.model');
 const Project = require('../models/project.model');
 const Story = require('../models/story.model');
@@ -23,6 +30,12 @@ exports.createStory = async (req, res, next) => {
       assignee: assignee._id,
     }));
 
+    if (find(propEq('code', story.code))(project.stories)) {
+      throw new APIError({
+        message: 'A story with that code already exists within the project',
+        status: httpStatus.BAD_REQUEST,
+      });
+    }
     project.stories = append(story._id, project.stories);
     await project.save();
     const savedStory = await story.save();

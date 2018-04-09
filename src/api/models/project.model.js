@@ -97,6 +97,7 @@ projectSchema.statics = {
 
       if (mongoose.Types.ObjectId.isValid(id)) {
         project = await this.findById(id)
+          .populate('stories', ['id', 'code'])
           .exec();
       }
       if (project) {
