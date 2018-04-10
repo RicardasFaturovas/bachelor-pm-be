@@ -6,7 +6,7 @@ module.exports = {
     body: {
       email: Joi.string().email().required(),
       password: Joi.string().min(6).max(128).required(),
-      repeatPassword: Joi.ref('password'),
+      confirmPassword: Joi.ref('password'),
       name: Joi.string().required().max(128).required(),
       lastName: Joi.string().required().max(128).required(),
       birthYear: Joi.number().positive().optional(),

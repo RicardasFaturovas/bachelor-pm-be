@@ -191,6 +191,30 @@ storySchema.statics = {
   },
 
   /**
+   * Get story
+   *
+   * @param {String[]} idArray - An array of ids of the project.
+   * @returns {Promise<Story[], APIError>}
+   */
+  async getMultipleById(idArray) {
+    try {
+      const stories = await this.find({
+        _id: {
+          $in: idArray,
+        },
+      }).exec();
+
+      if (stories.length) {
+        return stories;
+      }
+
+      return null;
+    } catch (error) {
+      throw error;
+    }
+  },
+
+  /**
    * Get story by id
    *
    * @param {ObjectId} id - The objectId of story.

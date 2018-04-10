@@ -50,16 +50,11 @@ exports.createSprints = async (req, res, next) => {
         project: project._id,
       }), req.body.sprintCount);
 
-    const savedSprints = await Promise.all(map(async (sprint) => {
-      const savedSprint = await sprint.save();
-      return savedSprint ? 'success' : 'error';
-    }, sprints));
+    await Sprint.insertMany(sprints);
 
-    if (!savedSprints.includes('error')) {
-      const sprintIds = map(sprint => sprint._id, sprints);
-      project.sprints = append(...sprintIds, project.sprints);
-      await project.save();
-    }
+    const sprintIds = map(sprint => sprint._id, sprints);
+    project.sprints = append(...sprintIds, project.sprints);
+    await project.save();
 
     res.status(httpStatus.CREATED);
     res.json(map(sprint => sprint.transform(), sprints));
@@ -79,13 +74,12 @@ exports.updateSprint = async (req, res, next) => {
     const sprint = await Sprint.get(project, req.params.sprintIndicator);
 
     if (req.body.stories) {
-      const storyIds = await Promise.all(map(async story =>
-        Story.getIfExists(story), req.body.stories));
+      const storyIds = await Story.getMultipleById(req.body.stories);
       const nonNullStories = without([null], storyIds);
       const updatedStories = map(story =>
         Object.assign(story, { sprint: sprint._id }), without([null], nonNullStories));
 
-      await Promise.all(map(async story => story.save(), updatedStories));
+      await Story.updateMany(updatedStories);
 
       const sprintStoryIds = sprint.stories.map(el => el.toString());
       const addedStoryIds = map(story => story.id, nonNullStories);
