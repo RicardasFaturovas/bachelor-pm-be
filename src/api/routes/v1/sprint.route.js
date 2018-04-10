@@ -2,7 +2,7 @@ const express = require('express');
 const controller = require('../../controllers/sprint.controller');
 const validate = require('express-validation');
 const { authorize } = require('../../middlewares/auth');
-const { createSprints } = require('../../validations/sprint.validation');
+const { createSprints, updateSprint } = require('../../validations/sprint.validation');
 
 const router = express.Router();
 
@@ -47,5 +47,9 @@ router
    * @apiError (Unauthorized 401)  Unauthorized     Only authenticated users can create the data
    */
   .post(authorize(), validate(createSprints), controller.createSprints);
+
+router
+  .route('/:projectId/:sprintIndicator/update-sprint')
+  .patch(authorize(), validate(updateSprint), controller.updateSprint);
 
 module.exports = router;

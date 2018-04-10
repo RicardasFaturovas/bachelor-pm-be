@@ -1,5 +1,10 @@
 const httpStatus = require('http-status');
-const { append, times, map } = require('ramda');
+const {
+  append,
+  times,
+  map,
+  assoc,
+} = require('ramda');
 
 const Sprint = require('../models/sprint.model');
 const Project = require('../models/project.model');
@@ -56,6 +61,28 @@ exports.createSprints = async (req, res, next) => {
 
     res.status(httpStatus.CREATED);
     res.json(map(sprint => sprint.transform(), sprints));
+  } catch (error) {
+    next(error);
+  }
+};
+
+/**
+ * Update existing sprint
+ * @public
+ */
+exports.updateSprint = async (req, res, next) => {
+  try {
+    const currentProject = await Project.get(req.params.projectId);
+    const { _id: project } = currentProject;
+    const sprint = await Sprint.get(project, req.params.sprintIndicator);
+
+    sprint.stories = req.body.stories && append(req.body.stories, sprint.stories);
+    const { state } = req.body;
+    const updateSprint = state ? assoc('state', state, sprint) : sprint;
+
+
+    const savedSprint = await updateSprint.save();
+    res.json(savedSprint.transform());
   } catch (error) {
     next(error);
   }

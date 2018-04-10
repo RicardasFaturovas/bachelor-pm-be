@@ -10,4 +10,10 @@ module.exports = {
       sprintCount: Joi.number().required(),
     },
   },
+  updateSprint: {
+    body: {
+      stories: Joi.array().items(Joi.string()).optional(),
+      state: Joi.string().allow('todo', 'inProgress', 'done').optional(),
+    },
+  },
 };

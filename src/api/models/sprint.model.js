@@ -1,5 +1,16 @@
 const mongoose = require('mongoose');
-const { forEach, reject, isNil } = require('ramda');
+const {
+  forEach,
+  reject,
+  isNil,
+  map,
+  pipe,
+  reduce,
+} = require('ramda');
+const APIError = require('../utils/APIError');
+const httpStatus = require('http-status');
+const { formatTime } = require('./time.schema');
+
 
 /**
  * Story Schema
@@ -45,10 +56,20 @@ const sprintSchema = new mongoose.Schema({
   timestamps: true,
 });
 
+const calculateTime = timeArr => pipe(
+  reduce((acc, val) => ({
+    days: acc.days + val.days,
+    hours: acc.hours + val.hours,
+    minutes: acc.minutes + val.minutes,
+  }), { days: 0, hours: 0, minutes: 0 }),
+  formatTime,
+)(timeArr);
+
 sprintSchema.method({
   transform() {
     const transformed = {};
     const fields = [
+      'id',
       'indicator',
       'time',
       'state',
@@ -61,11 +82,23 @@ sprintSchema.method({
 
     forEach((field) => {
       transformed[field] = this[field];
-      transformed.period = {
-        startTime: this.time.days * this.indicator,
-        endTime: this.time.days * (this.indicator + 1),
-      };
     }, fields);
+    transformed.period = {
+      startTime: this.time.days * this.indicator,
+      endTime: this.time.days * (this.indicator + 1),
+    };
+    transformed.chartData = {
+      totalStoryEstimatedTime: this.stories.length ?
+        pipe(
+          map(story => story.estimatedTime),
+          calculateTime,
+        )(this.stories) : null,
+      totalStoryLoggedTime: this.stories.length ?
+        pipe(
+          map(story => story.loggedTime),
+          calculateTime,
+        )(this.stories) : null,
+    };
 
     return transformed;
   },
@@ -107,6 +140,34 @@ sprintSchema.statics = {
     }
   },
 
+  /**
+   * Get sprint
+   *
+   * @param {String} project - The id of the project.
+   * @param {String} indicator - The sprint indicator.
+   * @returns {Promise<Project, APIError>}
+   */
+  async get(project, indicator) {
+    try {
+      const sprint = await this.findOne({
+        $and: [
+          { project },
+          { indicator },
+        ],
+      }).exec();
+
+      if (sprint) {
+        return sprint;
+      }
+
+      throw new APIError({
+        message: 'Sprint does not exist',
+        status: httpStatus.NOT_FOUND,
+      });
+    } catch (error) {
+      throw error;
+    }
+  },
 };
 
 /**

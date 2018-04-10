@@ -72,6 +72,7 @@ storySchema.method({
   transform() {
     const transformed = {};
     const fields = [
+      'id',
       'code',
       'name',
       'description',
