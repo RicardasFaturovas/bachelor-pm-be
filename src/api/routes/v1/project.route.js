@@ -2,7 +2,7 @@ const express = require('express');
 const controller = require('../../controllers/project.controller');
 const validate = require('express-validation');
 const { authorize } = require('../../middlewares/auth');
-const { createProject, updateProject } = require('../../validations/project.validation');
+const { createProject, updateProject, removeUser } = require('../../validations/project.validation');
 
 const router = express.Router();
 
@@ -94,10 +94,36 @@ router
    * @apiSuccess (Created 201) {String}  creatorId  Creator's id
    * @apiSuccess (Created 201) {Date}    createdAt  Timestamp
    *
-   * @apiError (Bad Request 400)  ValidationError  Some parameters may contain invalid values
+   * @apiError (Bad Request 400)  ValidationError  Some parameters contain invalid values
    * @apiError (Unauthorized 401) Unauthorized Only authenticated users can modify the data
    * @apiError (Not Found 404)    NotFound     User does not exist
+   * @apiError (Not Found 404)    NotFound     Project does not exist
    */
   .patch(authorize(), validate(updateProject), controller.updateProject);
+
+router
+  .route('/:id/remove-user')
+  /**
+   * @api {patch} v1/projects/:id/remove-user Remove user from project
+   * @apiDescription Remove a user from a project
+   * @apiVersion 1.0.0
+   * @apiName RemoveUserFromProject
+   * @apiGroup Project
+   * @apiPermission user
+   *
+   * @apiHeader {String} Authorization  User's access token
+   *
+   * @apiParam  {String}  user          User id
+   *
+   * @apiSuccess (Created 201) {String}  name       Project's name
+   * @apiSuccess (Created 201) {String}  creatorId  Creator's id
+   * @apiSuccess (Created 201) {Date}    createdAt  Timestamp
+   *
+   * @apiError (Bad Request 400)  ValidationError  Some parameters contain invalid values
+   * @apiError (Unauthorized 401) Unauthorized Only authenticated users can modify the data
+   * @apiError (Not Found 404)    NotFound     User does not exist
+   * @apiError (Not Found 404)    NotFound     Project does not exist
+   */
+  .patch(authorize(), validate(removeUser), controller.removeUserFromProject);
 
 module.exports = router;

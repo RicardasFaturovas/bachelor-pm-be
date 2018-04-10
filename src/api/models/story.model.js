@@ -95,6 +95,7 @@ storySchema.method({
       'code',
       'name',
       'description',
+      'sprint',
       'state',
       'priority',
       'estimatedTime',
@@ -156,7 +157,7 @@ storySchema.statics = {
     return this.findOne(options)
       .populate('assignee', ['_id', 'name', 'lastname'])
       .populate('creator', ['_id', 'name', 'lastname'])
-      // .populate('sprint', ['_id', 'indicator'])
+      .populate('sprint', ['_id', 'indicator'])
       .sort({ createdAt: -1 })
       .exec();
   },

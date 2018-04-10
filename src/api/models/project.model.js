@@ -80,8 +80,22 @@ projectSchema.statics = {
 
     return this.find(options)
       .populate('stories', ['_id', 'status'])
-      // .populate('sprints', ['indicator'])
+      .populate('users', ['_id', 'name', 'lastName'])
+      .populate('creator', ['_id', 'name', 'lastName'])
+      .populate('sprints', ['indicator'])
       .sort({ createdAt: -1 })
+      .exec();
+  },
+
+  /**
+   * Get project by id.
+   *
+   * @returns {Promise<Project>}
+   */
+  getOne(id) {
+    return this.findById(id)
+      .populate('users', ['_id', 'name', 'lastName'])
+      .populate('creator', ['_id', 'name', 'lastName'])
       .exec();
   },
 

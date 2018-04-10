@@ -6,20 +6,21 @@ module.exports = {
     body: {
       name: Joi.string().max(128).required(),
       startDate: Joi.date().iso(),
-      users: Joi.array().items(Joi.object({
-        _id: Joi.string(),
-      })),
+      users: Joi.array().items(Joi.string()).optional(),
       description: Joi.string().max(500),
     },
   },
   updateProject: {
     body: {
-      name: Joi.string().max(128).required(),
+      name: Joi.string().max(128).optional(),
       startDate: Joi.date().iso(),
-      users: Joi.array().items(Joi.object({
-        _id: Joi.string(),
-      })),
-      description: Joi.string().max(500),
+      users: Joi.array().items(Joi.string()).optional(),
+      description: Joi.string().max(500).optional(),
+    },
+  },
+  removeUser: {
+    body: {
+      user: Joi.string().required(),
     },
   },
 };

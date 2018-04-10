@@ -1,7 +1,15 @@
 const httpStatus = require('http-status');
-const { append, merge, map } = require('ramda');
+const {
+  append,
+  merge,
+  map,
+  union,
+  omit,
+  without,
+} = require('ramda');
 
 const Project = require('../models/project.model');
+const User = require('../models/user.model');
 
 /**
  * Create new project
@@ -78,10 +86,49 @@ exports.removeProject = async (req, res, next) => {
 exports.updateProject = async (req, res, next) => {
   try {
     const project = await Project.get(req.params.id);
-    const updatedProject = Object.assign(project, req.body);
+    if (req.body.users) {
+      const users = await User.getMultipleById(req.body.users);
+      if (users) {
+        const updatedUsers = map((user) => {
+          const userProjectIds = user.projects.map(el => el.toString());
+          return Object.assign(user, { projects: union(userProjectIds, [project.id]) });
+        }, users);
+        await User.updateMany(updatedUsers);
+
+        const projectUserIds = project.users.map(el => el.toString());
+        const addedUserIds = map(user => user.id, users);
+        project.users = union(projectUserIds, addedUserIds);
+      }
+    }
+    const updatedProject = Object.assign(project, omit(['users'], req.body));
 
     const savedProject = await updatedProject.save();
-    res.json(savedProject.transform());
+    const requeriedProject = await Project.getOne(savedProject.id);
+    res.json(requeriedProject.transform());
+  } catch (error) {
+    next(error);
+  }
+};
+
+exports.removeUserFromProject = async (req, res, next) => {
+  try {
+    const project = await Project.get(req.params.id);
+    if (map((el => el.toString()), project.users).includes(req.body.user)) {
+      const user = await User.get(req.body.user);
+      if (user) {
+        const updatedUser = Object.assign(user, { project: null });
+
+        await updatedUser.save();
+
+        const updatedtUserIds = without([req.body.user], map(el => el.toString(), project.users));
+        project.users = updatedtUserIds;
+      }
+    }
+    const updatedProject = Object.assign(project, omit(['users'], req.body));
+
+    const savedProject = await updatedProject.save();
+    const requeriedProject = await Project.getOne(savedProject.id);
+    res.json(requeriedProject.transform());
   } catch (error) {
     next(error);
   }
