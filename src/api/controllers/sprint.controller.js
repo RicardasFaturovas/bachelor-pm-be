@@ -3,10 +3,12 @@ const {
   append,
   times,
   map,
-  assoc,
+  union,
+  without,
 } = require('ramda');
 
 const Sprint = require('../models/sprint.model');
+const Story = require('../models/story.model');
 const Project = require('../models/project.model');
 
 /**
@@ -76,14 +78,48 @@ exports.updateSprint = async (req, res, next) => {
     const { _id: project } = currentProject;
     const sprint = await Sprint.get(project, req.params.sprintIndicator);
 
-    sprint.stories = req.body.stories && append(req.body.stories, sprint.stories);
-    const { state } = req.body;
-    const updateSprint = state ? assoc('state', state, sprint) : sprint;
+    if (req.body.stories) {
+      const storyIds = await Promise.all(map(async story =>
+        Story.getIfExists(story), req.body.stories));
+      const nonNullStories = without([null], storyIds);
+      const updatedStories = map(story =>
+        Object.assign(story, { sprint: sprint._id }), without([null], nonNullStories));
 
+      await Promise.all(map(async story => story.save(), updatedStories));
+
+      const sprintStoryIds = sprint.stories.map(el => el.toString());
+      const addedStoryIds = map(story => story.id, nonNullStories);
+      sprint.stories = union(sprintStoryIds, addedStoryIds);
+    }
+
+    const { state } = req.body;
+    const updateSprint = state ?
+      Object.assign(sprint, { state }) :
+      sprint;
 
     const savedSprint = await updateSprint.save();
-    res.json(savedSprint.transform());
+    const updatedSprint = await Sprint.getOne(savedSprint.id);
+    res.json(updatedSprint.transform());
   } catch (error) {
     next(error);
   }
 };
+
+/**
+ * Delete sprint
+ * @public
+ */
+exports.removeSprint = async (req, res, next) => {
+  try {
+    const currentProject = await Project.get(req.params.projectId);
+    const { _id: project } = currentProject;
+    const sprint = await Sprint.get(project, req.params.sprintIndicator);
+
+    const removedSprint = sprint.remove();
+    removedSprint
+      .then(() => res.status(httpStatus.NO_CONTENT).end());
+  } catch (error) {
+    next(error);
+  }
+};
+

@@ -50,6 +50,49 @@ router
 
 router
   .route('/:projectId/:sprintIndicator/update-sprint')
+  /**
+   * @api {patch} v1/sprints/:projectId/:sprintIndicator/update-sprint Update sprint
+   * @apiDescription Update sprint document
+   * @apiVersion 1.0.0
+   * @apiName UpdateSprint
+   * @apiGroup Sprint
+   * @apiPermission user
+   *
+   * @apiHeader {String} Authorization  Users's access token
+   *
+   * @apiParam  {String[]}  stories       List of story id's
+   * @apiParam  {String}    state         State of sprint
+   *
+   * @apiSuccess {String}  id             Sprint id
+   * @apiSuccess {Number}  indicator      Sprint indicator
+   * @apiSuccess {TimeObj} time           Sprint time {days: Number}
+   * @apiSuccess {String}  state          Sprint state
+   * @apiSuccess {String}  project        Project containing the sprint id
+   * @apiSuccess {Object}  period         Sprint period in days {startTime: Number, endTime: Number}
+   * @apiSuccess {Objcet}  chartData      Sprint chart data
+   *  {totalStoryEstimatedTime: TimeOjb, totalStoryLoggedTime: TimeOjb}
+   * @apiSuccess {Date}    createdAt      Timestamp
+   *
+   * @apiError (Unauthorized 401)  Unauthorized  Only authenticated users can access the data
+   */
   .patch(authorize(), validate(updateSprint), controller.updateSprint);
+
+router
+  .route('/:projectId/:sprintIndicator/delete-sprint')
+  /**
+   * @api {patch} v1/stories/:projectId/:sprintIndicator/delete-sprint Delete sprint
+   * @apiDescription Delete sprint document
+   * @apiVersion 1.0.0
+   * @apiName DeleteSprint
+   * @apiGroup Sprint
+   * @apiPermission user
+   *
+   * @apiHeader {String} Authorization  Users's access token
+   *
+   * @apiSuccess (No Content 204)  Successfully deleted
+   *
+   * @apiError (Unauthorized 401)  Unauthorized  Only authenticated users can access the data
+   */
+  .delete(authorize(), controller.removeSprint);
 
 module.exports = router;

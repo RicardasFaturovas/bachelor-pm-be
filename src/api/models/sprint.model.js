@@ -56,14 +56,19 @@ const sprintSchema = new mongoose.Schema({
   timestamps: true,
 });
 
-const calculateTime = timeArr => pipe(
-  reduce((acc, val) => ({
-    days: acc.days + val.days,
-    hours: acc.hours + val.hours,
-    minutes: acc.minutes + val.minutes,
-  }), { days: 0, hours: 0, minutes: 0 }),
-  formatTime,
-)(timeArr);
+const calculateTime = (timeArr) => {
+  if (timeArr.length && !timeArr.includes(undefined)) {
+    return pipe(
+      reduce((acc, val) => ({
+        days: acc.days + val.days,
+        hours: acc.hours + val.hours,
+        minutes: acc.minutes + val.minutes,
+      }), { days: 0, hours: 0, minutes: 0 }),
+      formatTime,
+    )(timeArr);
+  }
+  return { days: 0, hours: 0, minutes: 0 };
+};
 
 sprintSchema.method({
   transform() {
@@ -105,6 +110,17 @@ sprintSchema.method({
 });
 
 sprintSchema.statics = {
+  /**
+   * Get sprint by id.
+   *
+   * @returns {Promise<Sprint>}
+   */
+  getOne(id) {
+    return this.findById(id)
+      .populate('stories', ['state', 'loggedTime', 'estimatedTime'])
+      .exec();
+  },
+
   /**
    * List Sprint in descending order of 'indicator'.
    *
