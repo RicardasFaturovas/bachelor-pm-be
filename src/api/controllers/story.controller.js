@@ -54,7 +54,7 @@ exports.createStory = async (req, res, next) => {
 exports.getStoryList = async (req, res, next) => {
   try {
     const { _id: creator } = req.user;
-    const currentProject = await Project.get(req.params.projectId, creator);
+    const currentProject = await Project.get(req.params.projectId);
     const { _id: project } = currentProject;
     const stories = await Story.list({ creator, project });
     const transformedStories = map(story => story.transform(), stories);

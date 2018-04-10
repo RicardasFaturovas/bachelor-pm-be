@@ -5,13 +5,14 @@ module.exports = {
   register: {
     body: {
       email: Joi.string().email().required(),
-      password: Joi.string().required().min(6).max(128),
+      password: Joi.string().min(6).max(128).required(),
       repeatPassword: Joi.ref('password'),
       name: Joi.string().required().max(128).required(),
       lastName: Joi.string().required().max(128).required(),
-      birthYear: Joi.number().positive().required(),
+      birthYear: Joi.number().positive().optional(),
       gender: Joi.string().allow('male', 'female').required(),
-      phone: Joi.string().max(20).default(''),
+      location: Joi.string().optional(),
+      phone: Joi.string().max(20).required(),
       occupation: Joi.string().default(''),
     },
   },

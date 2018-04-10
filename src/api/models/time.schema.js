@@ -12,8 +12,8 @@ const timeSchema = {
 
 const formatTime = (timeObj) => {
   let { days = 0, hours = 0, minutes = 0 } = timeObj;
-  days += Math.floor(hours / 24);
-  hours = (hours % 24) + Math.floor(minutes / 60);
+  days += Math.floor(hours / 8);
+  hours = (hours % 8) + Math.floor(minutes / 60);
   minutes %= 60;
 
   return {

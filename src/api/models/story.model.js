@@ -72,6 +72,7 @@ storySchema.method({
   transform() {
     const transformed = {};
     const fields = [
+      'id',
       'code',
       'name',
       'description',
@@ -184,6 +185,29 @@ storySchema.statics = {
         message: 'Story does not exist',
         status: httpStatus.NOT_FOUND,
       });
+    } catch (error) {
+      throw error;
+    }
+  },
+
+  /**
+   * Get story by id
+   *
+   * @param {ObjectId} id - The objectId of story.
+   * @returns {Promise<Story, APIError>}
+   */
+  async getIfExists(id) {
+    try {
+      let story;
+
+      if (mongoose.Types.ObjectId.isValid(id)) {
+        story = await this.findById(id)
+          .exec();
+      }
+      if (story) {
+        return story;
+      }
+      return null;
     } catch (error) {
       throw error;
     }
