@@ -18,11 +18,20 @@ const User = require('../models/user.model');
 exports.createProject = async (req, res, next) => {
   try {
     const { _id: creator } = req.user;
-    const users = [{ _id: creator }];
+    let users = [];
+    if (req.body.users) {
+      users = await User.getMultipleById(req.body.users);
+      if (users.length) {
+        const updatedUsers = map(userObj =>
+          Object.assign(userObj, { projects: append(project.id, user.projects) }), users);
+        await User.updateMany(updatedUsers);
+      }
+    }
+    const { user } = req;
     const project = new Project(merge(req.body, { creator, users }));
 
-    const { user } = req;
-    user.projects = append(project, user.projects);
+    user.projects = append(project._id, user.projects);
+    project.users = append(user._id, project.users);
 
     await user.save();
     const savedProject = await project.save();
