@@ -5,6 +5,7 @@ const {
   map,
   omit,
   takeLast,
+  filter,
 } = require('ramda');
 const User = require('../models/user.model');
 const Project = require('../models/project.model');
@@ -69,9 +70,15 @@ exports.getStoryList = async (req, res, next) => {
  */
 exports.getScrumboardData = async (req, res, next) => {
   try {
-    const stories = await Story.scrumboardList(req.params.sprintId);
+    const stories = await Story.scrumboardList(req.params.sprintId, req.query.assigneeId);
     const transformedStories = map(story => story.detailedTransform(), stories);
-    res.json(transformedStories);
+    const filteredStories = req.query.assigneeId ?
+      map(story => Object.assign(story, {
+        tasks: filter(task =>
+          task.assignee._id.toString() === req.query.assigneeId, story.tasks),
+      }), transformedStories) :
+      transformedStories;
+    res.json(filteredStories);
   } catch (error) {
     next(error);
   }

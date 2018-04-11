@@ -239,7 +239,7 @@ storySchema.statics = {
       }
 
       throw new APIError({
-        message: 'Specified sprint does not have any stories',
+        message: 'Specified sprint does not have any stories or is not a valid sprint',
         status: httpStatus.NOT_FOUND,
       });
     } catch (error) {
