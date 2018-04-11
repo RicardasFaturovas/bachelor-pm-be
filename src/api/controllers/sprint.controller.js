@@ -36,19 +36,12 @@ exports.createSprints = async (req, res, next) => {
     const time = req.body.sprintTime;
     const latestSprint = await Sprint.findLatest();
 
-    const sprints = latestSprint ?
-      times(indicator => new Sprint({
-        time,
-        indicator: indicator + latestSprint.indicator + 1,
-        state: 'todo',
-        project: project._id,
-      }), req.body.sprintCount) :
-      times(indicator => new Sprint({
-        time,
-        indicator,
-        state: 'todo',
-        project: project._id,
-      }), req.body.sprintCount);
+    const sprints = times(indicator => new Sprint({
+      time,
+      indicator: latestSprint ? indicator + latestSprint.indicator + 1 : indicator,
+      state: 'todo',
+      project: project._id,
+    }), req.body.sprintCount);
 
     await Sprint.insertMany(sprints);
 

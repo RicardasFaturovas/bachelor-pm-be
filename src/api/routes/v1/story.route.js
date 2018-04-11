@@ -57,6 +57,38 @@ router
   .post(authorize(), validate(createStory), controller.createStory);
 
 router
+  .route('/:sprintId/scrumboard-details')
+  /**
+   * @api {post} v1/stories/:sprintId/scrumboard-details Get Scrumboard details
+   * @apiDescription Create a new story for the current project
+   * @apiVersion 1.0.0
+   * @apiName CreateStory
+   * @apiGroup Story
+   * @apiPermission user
+   *
+   * @apiHeader {String} Authorization  Users's access token
+   *
+   * @apiParam  {String}  name          Story name
+   * @apiParam  {String}  priority      Story priority
+   * @apiParam  {String}  storyPoints   Story storyPoints
+   * @apiParam  {String}  state         Story state
+   * @apiParam  {String}  assignee      Story assignee id
+   * @apiParam  {String}  description   Story description
+   *
+   * @apiSuccess (Created 201) {String}  name          Story name
+   * @apiSuccess (Created 201) {String}  name          Story name
+   * @apiSuccess (Created 201) {String}  priority      Story priority
+   * @apiSuccess (Created 201) {String}  storyPoints   Story storyPoints
+   * @apiSuccess (Created 201) {String}  state         Story state
+   * @apiSuccess (Created 201) {String}  assignee      Story assignee
+   * @apiSuccess (Created 201) {String}  description   Story description
+   *
+   * @apiError (Bad Request 400)   ValidationError  Some parameters contain invalid values
+   * @apiError (Unauthorized 401)  Unauthorized     Only authenticated users can create the data
+   */
+  .get(authorize(), controller.getScrumboardData);
+
+router
   .route('/:storyId/summary')
   /**
    * @api {get} v1/stories/:storyId/ Get story summary
@@ -88,7 +120,7 @@ router
 router
   .route('/:storyId/update-story')
   /**
-   * @api {patch} v1/stories/:storyId/supdate-story Update story
+   * @api {patch} v1/stories/:storyId/update-story Update story
    * @apiDescription Update story document
    * @apiVersion 1.0.0
    * @apiName UpdateStory
@@ -126,7 +158,7 @@ router
 router
   .route('/:storyId/delete-story')
   /**
-   * @api {patch} v1/stories/:storyId/sdelete-story Delete story
+   * @api {patch} v1/stories/:storyId/delete-story Delete story
    * @apiDescription Delete story document
    * @apiVersion 1.0.0
    * @apiName DeleteStory

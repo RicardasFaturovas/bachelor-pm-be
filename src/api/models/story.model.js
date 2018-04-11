@@ -154,6 +154,7 @@ storySchema.statics = {
       .populate('assignee', ['_id', 'name', 'lastname'])
       .populate('creator', ['_id', 'name', 'lastname'])
       .populate('sprint', ['_id', 'indicator'])
+      .populate('tasks', ['_id', 'name', 'code', 'assignee', 'status'])
       .exec();
   },
 
@@ -210,6 +211,48 @@ storySchema.statics = {
     }
   },
 
+  async scrumboardList(id) {
+    try {
+      let stories;
+      if (mongoose.Types.ObjectId.isValid(id)) {
+        stories = await this.find({
+          sprint: id,
+        })
+          .populate('assignee', ['_id', 'name', 'lastname'])
+          .populate('creator', ['_id', 'name', 'lastname'])
+          .populate('sprint', ['_id', 'indicator'])
+          .populate('tasks', ['_id', 'name', 'code', 'assignee', 'status'])
+          .populate({
+            path: 'tasks',
+            select: ['_id', 'name', 'code', 'assignee', 'status'],
+            populate: {
+              path: 'assignee',
+              select: ['_id', 'name', 'lastName'],
+              model: 'User',
+            },
+          })
+          .exec();
+      }
+
+      if (stories.length) {
+        return stories;
+      }
+
+      throw new APIError({
+        message: 'Specified sprint does not have any stories',
+        status: httpStatus.NOT_FOUND,
+      });
+    } catch (error) {
+      throw error;
+    }
+  },
+
+  /**
+   * Get story
+   *
+   * @param {Sring} id - Id of the task to look for in story
+   * @returns {Promise<Story[], APIError>}
+   */
   async getByTaskId(id) {
     try {
       let story;

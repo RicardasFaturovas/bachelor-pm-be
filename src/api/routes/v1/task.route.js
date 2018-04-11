@@ -55,11 +55,11 @@ router
 router
   .route('/:taskId/update-task')
   /**
-   * @api {patch} v1/tasks/:taskId/supdate-story Update story
+   * @api {patch} v1/tasks/:taskId/update-task Update task
    * @apiDescription Update task document
    * @apiVersion 1.0.0
    * @apiName UpdateTask
-   * @apiGroup Story
+   * @apiGroup Task
    * @apiPermission user
    *
    * @apiHeader {String} Authorization  Users's access token
@@ -96,7 +96,7 @@ router
 router
   .route('/:taskId/delete-task')
   /**
-   * @api {patch} v1/tasks/:taskId/sdelete-story Delete task
+   * @api {patch} v1/tasks/:taskId/delete-task Delete task
    * @apiDescription Delete task document
    * @apiVersion 1.0.0
    * @apiName DeleteTask

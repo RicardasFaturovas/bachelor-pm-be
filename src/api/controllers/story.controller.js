@@ -64,6 +64,20 @@ exports.getStoryList = async (req, res, next) => {
 };
 
 /**
+ * Get story list with tasks by sprint
+ * @public
+ */
+exports.getScrumboardData = async (req, res, next) => {
+  try {
+    const stories = await Story.scrumboardList(req.params.sprintId);
+    const transformedStories = map(story => story.detailedTransform(), stories);
+    res.json(transformedStories);
+  } catch (error) {
+    next(error);
+  }
+};
+
+/**
  * Get story summary details
  * @public
  */
