@@ -1,7 +1,7 @@
 const Joi = require('joi');
 
 module.exports = {
-  // POST /v1/stories/:projectName/create-story
+  // POST /v1/stories/:projectId/create-story
   createStory: {
     body: {
       code: Joi.string().required(),

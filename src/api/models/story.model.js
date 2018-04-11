@@ -149,34 +149,29 @@ storySchema.statics = {
    *
    * @returns {Promise<Story[]>}
    */
-  detailedView({
-    project, code,
-  }) {
-    const options = reject(isNil, { code, project });
-
-    return this.findOne(options)
+  detailedView(id) {
+    return this.findById(id)
       .populate('assignee', ['_id', 'name', 'lastname'])
       .populate('creator', ['_id', 'name', 'lastname'])
       .populate('sprint', ['_id', 'indicator'])
-      .sort({ createdAt: -1 })
       .exec();
   },
 
   /**
    * Get story
    *
-   * @param {String} project - The id of the project.
-   * @param {String} code - The code of the story.
-   * @returns {Promise<Project, APIError>}
+   * @param {String} id - The id of the story.
+   * @returns {Promise<Story, APIError>}
    */
-  async get(project, code) {
+  async get(id) {
     try {
-      const story = await this.findOne({
-        $and: [
-          { project },
-          { code },
-        ],
-      }).exec();
+      let story;
+
+      if (mongoose.Types.ObjectId.isValid(id)) {
+        story = await this.findById(id)
+          .populate('tasks', ['_id', 'code'])
+          .exec();
+      }
 
       if (story) {
         return story;

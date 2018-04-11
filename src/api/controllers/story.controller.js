@@ -4,6 +4,7 @@ const {
   merge,
   map,
   propEq,
+  omit,
   find,
 } = require('ramda');
 const APIError = require('../utils/APIError');
@@ -70,10 +71,7 @@ exports.getStoryList = async (req, res, next) => {
  */
 exports.getStorySummary = async (req, res, next) => {
   try {
-    const { _id: creator } = req.user;
-    const currentProject = await Project.get(req.params.projectId);
-    const { _id: project } = currentProject;
-    const story = await Story.detailedView({ creator, project });
+    const story = await Story.detailedView(req.params.storyId);
     const transformedStory = story.detailedTransform();
     res.json(transformedStory);
   } catch (error) {
@@ -87,9 +85,12 @@ exports.getStorySummary = async (req, res, next) => {
  */
 exports.updateStory = async (req, res, next) => {
   try {
-    const project = await Project.get(req.params.projectId);
-    const story = await Story.get(project._id, req.params.storyCode);
-    const updatedStory = Object.assign(story, req.body);
+    const story = await Story.get(req.params.storyId);
+
+    let assignee = await User.getIfExists(req.body.assignee);
+    if (!assignee) assignee = req.user;
+    story.assignee = assignee._id;
+    const updatedStory = Object.assign(story, omit(['assignee'], req.body));
 
     const savedStory = await updatedStory.save();
     res.json(savedStory.detailedTransform());
@@ -104,8 +105,7 @@ exports.updateStory = async (req, res, next) => {
  */
 exports.removeStory = async (req, res, next) => {
   try {
-    const project = await Project.get(req.params.projectId);
-    const story = await Story.get(project._id, req.params.storyCode);
+    const story = await Story.get(req.params.storyId);
     const removedStory = story.remove();
     removedStory
       .then(() => res.status(httpStatus.NO_CONTENT).end());

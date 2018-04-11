@@ -1,5 +1,5 @@
 const mongoose = require('mongoose');
-const timeSchema = require('./time.schema').schema;
+const { schema: timeSchema, formatTime } = require('./time.schema');
 const { forEach, reject, isNil } = require('ramda');
 
 /**
@@ -12,7 +12,7 @@ const priorities = ['blocker', 'critical', 'major', 'medium', 'minor'];
 
 const taskSchema = new mongoose.Schema({
   code: {
-    type: Number,
+    type: String,
     required: true,
   },
   name: {
@@ -53,18 +53,30 @@ const taskSchema = new mongoose.Schema({
   timestamps: true,
 });
 
+taskSchema.pre('save', function save(next) {
+  try {
+    if (this.loggedTime) {
+      this.loggedTime = formatTime(this.loggedTime);
+    }
+    if (this.estimatedTime) {
+      this.estimatedTime = formatTime(this.estimatedTime);
+    }
+    return next();
+  } catch (error) {
+    return next(error);
+  }
+});
+
 taskSchema.method({
   transform() {
     const transformed = {};
     const fields = [
+      'code',
       'name',
       'story',
-      'description',
       'state',
-      'priority',
       'estimatedTime',
       'loggedTime',
-      'creator',
       'assignee',
       'createdAt',
     ];
@@ -83,20 +95,12 @@ taskSchema.statics = {
    *
    * @returns {Promise<Task[]>}
    */
-  list({
-    creator, code, storyCode,
-  }) {
-    const options = reject(isNil, {
-      code,
-      creator,
-      story: {
-        code: storyCode,
-      },
-    });
+  list({ story }) {
+    const options = reject(isNil, { story });
 
     return this.find(options)
-      .populate('creator', ['name', 'lastname'])
-      .populate('assignee', ['name', 'lastname'])
+      .populate('creator', ['_id', 'name', 'lastname'])
+      .populate('assignee', ['_id', 'name', 'lastname'])
       .sort({ createdAt: -1 })
       .exec();
   },

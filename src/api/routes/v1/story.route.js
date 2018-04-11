@@ -57,9 +57,9 @@ router
   .post(authorize(), validate(createStory), controller.createStory);
 
 router
-  .route('/:projectId/:storyCode/summary')
+  .route('/:storyId/summary')
   /**
-   * @api {get} v1/stories/:projectId/:storyCode/ Get story summary
+   * @api {get} v1/stories/:storyId/ Get story summary
    * @apiDescription Get detailed story summary
    * @apiVersion 1.0.0
    * @apiName GetStorySummary
@@ -86,9 +86,9 @@ router
   .get(authorize(), controller.getStorySummary);
 
 router
-  .route('/:projectId/:storyCode/update-story')
+  .route('/:storyId/update-story')
   /**
-   * @api {patch} v1/stories/:projectId/:storyCode/update-story Update story
+   * @api {patch} v1/stories/:storyId/supdate-story Update story
    * @apiDescription Update story document
    * @apiVersion 1.0.0
    * @apiName UpdateStory
@@ -124,9 +124,9 @@ router
   .patch(authorize(), validate(updateStory), controller.updateStory);
 
 router
-  .route('/:projectId/:storyCode/delete-story')
+  .route('/:storyId/sdelete-story')
   /**
-   * @api {patch} v1/stories/:projectId/:storyCode/delete-story Delete story
+   * @api {patch} v1/stories/:storyId/sdelete-story Delete story
    * @apiDescription Delete story document
    * @apiVersion 1.0.0
    * @apiName DeleteStory
