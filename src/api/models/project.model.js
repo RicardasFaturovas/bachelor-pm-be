@@ -11,6 +11,13 @@ const projectSchema = new mongoose.Schema({
     type: String,
     maxlength: 128,
     trim: true,
+    unique: true,
+  },
+  code: {
+    type: String,
+    maxlength: 4,
+    trim: true,
+    unique: true,
   },
   startDate: {
     type: Date,

@@ -41,6 +41,7 @@ router
    * @apiHeader {String} Authorization  Users's access token
    *
    * @apiParam  {String}  name          Project name
+   * @apiParam  {String}  code          Project code
    * @apiParam  {Date}    startDate     Project start date, default current time
    * @apiParam  {User[]}  users         Project list of user ids
    * @apiParam  {String}  description   Project description

@@ -4,7 +4,6 @@ module.exports = {
   // POST /v1/tasks/:storyId/create-task
   createTask: {
     body: {
-      code: Joi.string().required(),
       name: Joi.string().max(500).required(),
       priority: Joi.string().allow('blocker', 'critical', 'major', 'medium', 'minor').required(),
       state: Joi.string().allow('todo', 'inProgress', 'testing', 'done').default('todo'),

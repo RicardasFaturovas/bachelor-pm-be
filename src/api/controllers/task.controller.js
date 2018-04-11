@@ -3,10 +3,9 @@ const {
   append,
   merge,
   map,
-  propEq,
-  find,
+  takeLast,
+  takeWhile,
 } = require('ramda');
-const APIError = require('../utils/APIError');
 const User = require('../models/user.model');
 const Story = require('../models/story.model');
 const Task = require('../models/task.model');
@@ -22,21 +21,21 @@ exports.createTask = async (req, res, next) => {
 
     const { _id } = story;
     let assignee = await User.getIfExists(req.body.assignee);
-
     if (!assignee) assignee = req.user;
 
+    const lastTaskCode = story.tasks.length ?
+      Math.max(...map(task => takeLast(4, task.code), story.tasks)) :
+      '';
+    const code = `${takeWhile(x => x !== '-', story.code)}-T${(lastTaskCode + 1)
+      .toString()
+      .padStart(4, '0')}`;
+
     const task = new Task(merge(req.body, {
+      code,
       creator,
       story: _id,
       assignee: assignee._id,
     }));
-
-    if (find(propEq('code', task.code))(story.tasks)) {
-      throw new APIError({
-        message: 'A task with that code already exists within the project',
-        status: httpStatus.BAD_REQUEST,
-      });
-    }
 
     const savedTask = await task.save();
 

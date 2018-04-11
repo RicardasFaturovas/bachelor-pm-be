@@ -4,7 +4,6 @@ module.exports = {
   // POST /v1/stories/:projectId/create-story
   createStory: {
     body: {
-      code: Joi.string().required(),
       name: Joi.string().max(500).required(),
       storyPoints: Joi.string().allow('extraLarge', 'large', 'medium', 'small', 'extraSmall').required(),
       priority: Joi.string().allow('blocker', 'critical', 'major', 'medium', 'minor').required(),

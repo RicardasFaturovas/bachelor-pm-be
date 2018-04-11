@@ -4,6 +4,7 @@ module.exports = {
   // POST /v1/projects/create-project
   createProject: {
     body: {
+      code: Joi.string().max(4).required(),
       name: Joi.string().max(128).required(),
       startDate: Joi.date().iso(),
       users: Joi.array().items(Joi.string()).optional(),
