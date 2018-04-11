@@ -101,3 +101,18 @@ exports.updateTask = async (req, res, next) => {
     next(error);
   }
 };
+
+/**
+ * Remove task
+ * @public
+ */
+exports.removeTask = async (req, res, next) => {
+  try {
+    const task = await Task.get(req.params.taskId);
+    const removedTask = task.remove();
+    removedTask
+      .then(() => res.status(httpStatus.NO_CONTENT).end());
+  } catch (error) {
+    next(error);
+  }
+};

@@ -27,7 +27,7 @@ router
 router
   .route('/:storyId/create-task')
   /**
-   * @api {post} v1/stories/:storyId/create-task Create Task
+   * @api {post} v1/tasks/:storyId/create-task Create Task
    * @apiDescription Create a new task for the current story
    * @apiVersion 1.0.0
    * @apiName CreateTask
@@ -55,7 +55,7 @@ router
 router
   .route('/:taskId/update-task')
   /**
-   * @api {patch} v1/stories/:taskId/supdate-story Update story
+   * @api {patch} v1/tasks/:taskId/supdate-story Update story
    * @apiDescription Update task document
    * @apiVersion 1.0.0
    * @apiName UpdateTask
@@ -93,4 +93,21 @@ router
    */
   .patch(authorize(), validate(updateTask), controller.updateTask);
 
+router
+  .route('/:taskId/delete-task')
+  /**
+   * @api {patch} v1/tasks/:taskId/sdelete-story Delete task
+   * @apiDescription Delete task document
+   * @apiVersion 1.0.0
+   * @apiName DeleteTask
+   * @apiGroup Task
+   * @apiPermission user
+   *
+   * @apiHeader {String} Authorization  Users's access token
+   *
+   * @apiSuccess (No Content 204)  Successfully deleted
+   *
+   * @apiError (Unauthorized 401)  Unauthorized  Only authenticated users can access the data
+   */
+  .delete(authorize(), controller.removeTask);
 module.exports = router;
