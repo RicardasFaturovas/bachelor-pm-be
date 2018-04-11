@@ -210,6 +210,30 @@ storySchema.statics = {
     }
   },
 
+  async getByTaskId(id) {
+    try {
+      let story;
+      if (mongoose.Types.ObjectId.isValid(id)) {
+        story = await this.findOne({
+          tasks: {
+            $in: [id],
+          },
+        });
+      }
+
+      if (story) {
+        return story;
+      }
+
+      throw new APIError({
+        message: 'Story does not exist',
+        status: httpStatus.NOT_FOUND,
+      });
+    } catch (error) {
+      throw error;
+    }
+  },
+
   /**
    * Get story by id
    *

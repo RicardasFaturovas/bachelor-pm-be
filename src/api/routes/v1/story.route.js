@@ -124,7 +124,7 @@ router
   .patch(authorize(), validate(updateStory), controller.updateStory);
 
 router
-  .route('/:storyId/sdelete-story')
+  .route('/:storyId/delete-story')
   /**
    * @api {patch} v1/stories/:storyId/sdelete-story Delete story
    * @apiDescription Delete story document

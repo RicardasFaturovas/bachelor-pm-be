@@ -2,7 +2,7 @@ const express = require('express');
 const controller = require('../../controllers/task.controller');
 const validate = require('express-validation');
 const { authorize } = require('../../middlewares/auth');
-const { createTask } = require('../../validations/task.validation');
+const { createTask, updateTask } = require('../../validations/task.validation');
 
 const router = express.Router();
 
@@ -51,4 +51,46 @@ router
    * @apiError (Unauthorized 401)  Unauthorized     Only authenticated users can create the data
    */
   .post(authorize(), validate(createTask), controller.createTask);
+
+router
+  .route('/:taskId/update-task')
+  /**
+   * @api {patch} v1/stories/:taskId/supdate-story Update story
+   * @apiDescription Update task document
+   * @apiVersion 1.0.0
+   * @apiName UpdateTask
+   * @apiGroup Story
+   * @apiPermission user
+   *
+   * @apiHeader {String} Authorization  Users's access token
+   *
+   * @apiParam  {String}  name          Task name
+   * @apiParam  {String}  priority      Task priority
+   * @apiParam  {String}  state         Task state
+   * @apiParam  {String}  assignee      Task assignee id
+   * @apiParam  {String}  description   Task description
+   * @apiParam  {String}  estimatedTime Task estimated time object
+   *  {days: Number, hours: Number, minutes: Number}
+   * @apiParam  {String}  loggedTime Task logged time object
+   *  {days: Number, hours: Number, minutes: Number}
+   *
+   * @apiSuccess {String}  id             Task id
+   * @apiSuccess {String}  name           Task name
+   * @apiSuccess {String}  code           Task code
+   * @apiSuccess {String}  priority       Task priority
+   * @apiSuccess {String}  state          Task state
+   * @apiSuccess {TimeObj} estimatedTime  Task estimatedTime
+   * @apiSuccess {TimeObj} loggedTime     Task loggedTime
+   * @apiSuccess {Objcet}  assiginee      Task assiginee id, name, lastName
+   * @apiSuccess {Objcet}  creator        Task creator id, name, lastName
+   * @apiParam   {Object}  estimatedTime  Task estimated time object
+   *  {days: Number, hours: Number, minutes: Number}
+   * @apiParam   {Object}  loggedTime     Task logged time object
+   *  {days: Number, hours: Number, minutes: Number}
+   * @apiSuccess {Date}    createdAt      Timestamp
+   *
+   * @apiError (Unauthorized 401)  Unauthorized  Only authenticated users can access the data
+   */
+  .patch(authorize(), validate(updateTask), controller.updateTask);
+
 module.exports = router;

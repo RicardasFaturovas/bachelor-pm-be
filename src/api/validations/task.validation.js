@@ -16,4 +16,23 @@ module.exports = {
       }).optional(),
     },
   },
+  updateTask: {
+    body: {
+      name: Joi.string().max(500).optional(),
+      priority: Joi.string().allow('blocker', 'critical', 'major', 'medium', 'minor').optional(),
+      state: Joi.string().allow('todo', 'inProgress', 'testing', 'done').optional(),
+      assignee: Joi.string().optional(),
+      description: Joi.string().optional(),
+      estimatedTime: Joi.object({
+        hours: Joi.number().optional(),
+        minutes: Joi.number().optional(),
+        days: Joi.number().optional(),
+      }).optional(),
+      loggedTime: Joi.object({
+        hours: Joi.number().optional(),
+        minutes: Joi.number().optional(),
+        days: Joi.number().optional(),
+      }).optional(),
+    },
+  },
 };

@@ -1,6 +1,8 @@
 const mongoose = require('mongoose');
+const httpStatus = require('http-status');
 const { schema: timeSchema, formatTime } = require('./time.schema');
 const { forEach, reject, isNil } = require('ramda');
+const APIError = require('../utils/APIError');
 
 /**
  * Task Schema
@@ -71,6 +73,7 @@ taskSchema.method({
   transform() {
     const transformed = {};
     const fields = [
+      '_id',
       'code',
       'name',
       'story',
@@ -90,6 +93,35 @@ taskSchema.method({
 });
 
 taskSchema.statics = {
+
+  /**
+   * Get story
+   *
+   * @param {String} id - The id of the story.
+   * @returns {Promise<Story, APIError>}
+   */
+  async get(id) {
+    try {
+      let task;
+      if (mongoose.Types.ObjectId.isValid(id)) {
+        task = await this.findById(id)
+          .populate('story', ['_id', 'code'])
+          .exec();
+      }
+
+      if (task) {
+        return task;
+      }
+
+      throw new APIError({
+        message: 'Task does not exist',
+        status: httpStatus.NOT_FOUND,
+      });
+    } catch (error) {
+      throw error;
+    }
+  },
+
   /**
    * List tasks in descending order of 'createdAt' timestamp.
    *

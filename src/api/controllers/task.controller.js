@@ -1,10 +1,13 @@
 const httpStatus = require('http-status');
 const {
   append,
+  add,
   merge,
+  mergeWith,
   map,
   takeLast,
   takeWhile,
+  omit,
 } = require('ramda');
 const User = require('../models/user.model');
 const Story = require('../models/story.model');
@@ -58,6 +61,42 @@ exports.getTaskList = async (req, res, next) => {
     const tasks = await Task.list({ story: req.params.storyId });
     const transformedTasks = map(task => task.transform(), tasks);
     res.json(transformedTasks);
+  } catch (error) {
+    next(error);
+  }
+};
+
+/**
+ * Update existing story
+ * @public
+ */
+exports.updateTask = async (req, res, next) => {
+  try {
+    const task = await Task.get(req.params.taskId);
+
+    let assignee = await User.getIfExists(req.body.assignee);
+    if (!assignee) assignee = req.user;
+    task.assignee = assignee._id;
+
+    if (req.body.loggedTime) {
+      task.loggedTime = mergeWith(
+        add,
+        task.loggedTime,
+        req.body.loggedTime,
+      );
+
+      const story = await Story.getByTaskId(req.params.taskId);
+      story.loggedTime = mergeWith(
+        add,
+        story.loggedTime,
+        task.loggedTime,
+      );
+      await story.save();
+    }
+    const updatedTask = Object.assign(task, omit(['assignee', 'loggedTime'], req.body));
+
+    const savedTask = await updatedTask.save();
+    res.json(savedTask.transform());
   } catch (error) {
     next(error);
   }
