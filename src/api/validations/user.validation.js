@@ -57,4 +57,10 @@ module.exports = {
       confirmPassword: Joi.ref('newPassword'),
     },
   },
+
+  getUsersByEmail: {
+    body: {
+      email: Joi.string().required(),
+    },
+  },
 };

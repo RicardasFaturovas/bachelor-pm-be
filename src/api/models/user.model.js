@@ -132,6 +132,22 @@ userSchema.method({
     return transformed;
   },
 
+  getEmailInfo() {
+    const transformed = {};
+    const fields = [
+      'id',
+      'name',
+      'lastName',
+      'email',
+    ];
+
+    fields.forEach((field) => {
+      transformed[field] = this[field];
+    });
+
+    return transformed;
+  },
+
   token() {
     const playload = {
       exp: moment().add(jwtExpirationInterval, 'minutes').unix(),
@@ -291,6 +307,26 @@ userSchema.statics = {
       .skip(perPage * (page - 1))
       .limit(perPage)
       .exec();
+  },
+
+  /**
+   * List users which have a regex match in their email
+   *
+   * @param {RegExp} regex - regex to search by in email field
+   * @returns {Promise<User[]>}
+   */
+  async findByEmailSubstring(regex) {
+    try {
+      const users = await this.find({
+        email: { $regex: regex, $options: 'i' },
+      });
+      if (users.length) {
+        return users;
+      }
+      return [];
+    } catch (error) {
+      throw error;
+    }
   },
 
   /**
