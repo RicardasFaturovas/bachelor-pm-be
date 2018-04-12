@@ -128,6 +128,10 @@ storySchema.pre('save', function save(next) {
   }
 });
 
+storySchema.pre('remove', function remove(next) {
+  this.model('Task').remove({ story: this._id }, next);
+});
+
 storySchema.statics = {
   /**
    * List stories in descending order of 'createdAt' timestamp.

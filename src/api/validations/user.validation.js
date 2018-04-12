@@ -40,10 +40,12 @@ module.exports = {
   // PATCH /v1/users/:userId
   updateUser: {
     body: {
-      email: Joi.string().email(),
-      password: Joi.string().min(6).max(128),
-      name: Joi.string().max(128),
-      role: Joi.string().valid(User.roles),
+      email: Joi.string().email().optional(),
+      name: Joi.string().required().max(128).optional(),
+      lastName: Joi.string().required().max(128).optional(),
+      location: Joi.string().optional(),
+      phone: Joi.string().max(20).required(),
+      occupation: Joi.string().default(''),
     },
   },
 
