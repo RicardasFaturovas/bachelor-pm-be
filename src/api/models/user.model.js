@@ -215,7 +215,7 @@ userSchema.statics = {
         return users;
       }
 
-      return null;
+      return [];
     } catch (error) {
       throw error;
     }
