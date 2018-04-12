@@ -37,15 +37,15 @@ module.exports = {
     },
   },
 
-  // PATCH /v1/users/:userId
+  // PATCH /v1/users/
   updateUser: {
     body: {
       email: Joi.string().email().optional(),
       name: Joi.string().required().max(128).optional(),
       lastName: Joi.string().required().max(128).optional(),
       location: Joi.string().optional(),
-      phone: Joi.string().max(20).required(),
-      occupation: Joi.string().default(''),
+      phone: Joi.string().max(20).optional(),
+      occupation: Joi.string().optional(),
     },
   },
 

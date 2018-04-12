@@ -1,7 +1,8 @@
 const mongoose = require('mongoose');
 const httpStatus = require('http-status');
-const { schema: timeSchema, formatTime } = require('./time.schema');
 const { forEach, reject, isNil } = require('ramda');
+
+const { schema: timeSchema, formatTime } = require('./time.schema');
 const APIError = require('../utils/APIError');
 
 /**
@@ -131,8 +132,8 @@ taskSchema.statics = {
     const options = reject(isNil, { story });
 
     return this.find(options)
-      .populate('creator', ['_id', 'name', 'lastname'])
-      .populate('assignee', ['_id', 'name', 'lastname'])
+      .populate('creator', ['_id', 'name', 'lastName'])
+      .populate('assignee', ['_id', 'name', 'lastName'])
       .sort({ createdAt: -1 })
       .exec();
   },

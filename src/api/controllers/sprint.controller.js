@@ -34,11 +34,10 @@ exports.createSprints = async (req, res, next) => {
   try {
     const project = await Project.get(req.params.projectId);
     const time = req.body.sprintTime;
-    const latestSprint = await Sprint.findLatest();
-
+    const latestSprint = await Sprint.findLatest(project.id);
     const sprints = times(indicator => new Sprint({
       time,
-      indicator: latestSprint ? indicator + latestSprint.indicator + 1 : indicator,
+      indicator: latestSprint.length ? indicator + latestSprint[0].indicator + 1 : indicator,
       state: 'todo',
       project: project._id,
     }), req.body.sprintCount);

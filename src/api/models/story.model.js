@@ -1,7 +1,8 @@
 const mongoose = require('mongoose');
 const httpStatus = require('http-status');
-const { schema: timeSchema, formatTime } = require('./time.schema');
 const { forEach, reject, isNil } = require('ramda');
+
+const { schema: timeSchema, formatTime } = require('./time.schema');
 const APIError = require('../utils/APIError');
 /**
  * Story Schema
@@ -14,7 +15,6 @@ const storyPoints = ['extraLarge', 'large', 'medium', 'small', 'extraSmall'];
 const storySchema = new mongoose.Schema({
   code: {
     type: String,
-    index: true,
     required: true,
   },
   name: {
@@ -149,17 +149,33 @@ storySchema.statics = {
       .exec();
   },
   /**
-   *List stories in descending order of 'createdAt' timestamp with their details.
+   * Get the story summary with tasks details
    *
    * @returns {Promise<Story[]>}
    */
-  detailedView(id) {
-    return this.findById(id)
-      .populate('assignee', ['_id', 'name', 'lastname'])
-      .populate('creator', ['_id', 'name', 'lastname'])
-      .populate('sprint', ['_id', 'indicator'])
-      .populate('tasks', ['_id', 'name', 'code', 'assignee', 'status'])
-      .exec();
+  async detailedView(id) {
+    let story;
+    try {
+      if (mongoose.Types.ObjectId.isValid(id)) {
+        story = await this.findById(id)
+          .populate('assignee', ['_id', 'name', 'lastName'])
+          .populate('creator', ['_id', 'name', 'lastName'])
+          .populate('sprint', ['_id', 'indicator'])
+          .populate('tasks', ['_id', 'name', 'code', 'assignee', 'status'])
+          .exec();
+      }
+
+      if (story) {
+        return story;
+      }
+
+      throw new APIError({
+        message: 'Story does not exist',
+        status: httpStatus.NOT_FOUND,
+      });
+    } catch (error) {
+      throw error;
+    }
   },
 
   /**
@@ -215,6 +231,12 @@ storySchema.statics = {
     }
   },
 
+  /**
+   * Get story list for scrumboard
+   *
+   * @param {String} id - Id of the sprint to search by
+   * @returns {Promise<Story[], APIError>}
+   */
   async scrumboardList(id) {
     try {
       let stories;
@@ -222,13 +244,13 @@ storySchema.statics = {
         stories = await this.find({
           sprint: id,
         })
-          .populate('assignee', ['_id', 'name', 'lastname'])
-          .populate('creator', ['_id', 'name', 'lastname'])
+          .populate('assignee', ['_id', 'name', 'lastName'])
+          .populate('creator', ['_id', 'name', 'lastName'])
           .populate('sprint', ['_id', 'indicator'])
           .populate('tasks', ['_id', 'name', 'code', 'assignee', 'status'])
           .populate({
             path: 'tasks',
-            select: ['_id', 'name', 'code', 'assignee', 'status'],
+            select: ['_id', 'name', 'lastName', 'code', 'assignee', 'status'],
             populate: {
               path: 'assignee',
               select: ['_id', 'name', 'lastName'],
@@ -254,7 +276,7 @@ storySchema.statics = {
   /**
    * Get story
    *
-   * @param {Sring} id - Id of the task to look for in story
+   * @param {String} id - Id of the task to look for in story
    * @returns {Promise<Story[], APIError>}
    */
   async getByTaskId(id) {

@@ -49,7 +49,8 @@ exports.createProject = async (req, res, next) => {
  */
 exports.list = async (req, res, next) => {
   try {
-    const projects = await Project.list(req.query);
+    const { _id: creator } = req.user;
+    const projects = await Project.list({ creator });
     const transformedProjects = map(project => project.transform(), projects);
     res.json(transformedProjects);
   } catch (error) {

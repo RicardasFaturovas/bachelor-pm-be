@@ -53,10 +53,9 @@ exports.createStory = async (req, res, next) => {
  */
 exports.getStoryList = async (req, res, next) => {
   try {
-    const { _id: creator } = req.user;
     const currentProject = await Project.get(req.params.projectId);
     const { _id: project } = currentProject;
-    const stories = await Story.list({ creator, project });
+    const stories = await Story.list({ project });
     const transformedStories = map(story => story.transform(), stories);
     res.json(transformedStories);
   } catch (error) {
@@ -70,7 +69,7 @@ exports.getStoryList = async (req, res, next) => {
  */
 exports.getScrumboardData = async (req, res, next) => {
   try {
-    const stories = await Story.scrumboardList(req.params.sprintId, req.query.assigneeId);
+    const stories = await Story.scrumboardList(req.params.sprintId);
     const transformedStories = map(story => story.detailedTransform(), stories);
     const filteredStories = req.query.assigneeId ?
       map(story => Object.assign(story, {
@@ -125,9 +124,8 @@ exports.updateStory = async (req, res, next) => {
 exports.removeStory = async (req, res, next) => {
   try {
     const story = await Story.get(req.params.storyId);
-    const removedStory = story.remove();
-    removedStory
-      .then(() => res.status(httpStatus.NO_CONTENT).end());
+    await story.remove();
+    res.status(httpStatus.NO_CONTENT).end();
   } catch (error) {
     next(error);
   }

@@ -1,3 +1,5 @@
+const { pipe, reduce } = require('ramda');
+
 const timeSchema = {
   days: {
     type: Number,
@@ -33,7 +35,22 @@ const formatTime = (timeObj) => {
     minutes,
   };
 };
+
+const calculateTime = (timeArr) => {
+  if (timeArr.length && !timeArr.includes(undefined)) {
+    return pipe(
+      reduce((acc, val) => ({
+        days: acc.days + val.days,
+        hours: acc.hours + val.hours,
+        minutes: acc.minutes + val.minutes,
+      }), { days: 0, hours: 0, minutes: 0 }),
+      formatTime,
+    )(timeArr);
+  }
+  return { days: 0, hours: 0, minutes: 0 };
+};
 module.exports = {
   schema: timeSchema,
   formatTime,
+  calculateTime,
 };
