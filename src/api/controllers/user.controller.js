@@ -94,9 +94,8 @@ exports.update = async (req, res, next) => {
 exports.updatePassword = async (req, res, next) => {
   try {
     const user = await User.get(req.user._id);
-    const passwordHash = await User
-      .hashNewPassword(user, req.body.oldPassword, req.body.newPassword);
-    user.password = passwordHash;
+    await User.checkOldPassword(user, req.body.oldPassword);
+    user.password = req.body.newPassword;
 
     const savedUser = await user.save();
     res.json({ success: !!savedUser });

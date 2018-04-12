@@ -54,6 +54,7 @@ module.exports = {
     body: {
       oldPassword: Joi.string().min(6).max(128).required(),
       newPassword: Joi.string().min(6).max(128).required(),
+      confirmPassword: Joi.ref('newPassword'),
     },
   },
 };
