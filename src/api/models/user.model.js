@@ -234,18 +234,15 @@ userSchema.statics = {
    *
    * @param {User} user - The request user object.
    * @param {string} oldPassword - The old user password.
-   * @param {string} newPassword - The new user password.
    * @returns {Promise<string, APIError>}
    */
-  async hashNewPassword(user, oldPassword, newPassword) {
-    const rounds = env === 'test' ? 1 : 10;
+  async checkOldPassword(user, oldPassword) {
     if (await user.passwordMatches(oldPassword)) {
-      const hash = await bcrypt.hash(newPassword, rounds);
-      return hash;
+      return true;
     }
     throw new APIError({
       message: 'Old password is incorrect',
-      status: httpStatus.UNAUTHORIZED,
+      status: httpStatus.FORBIDDEN,
     });
   },
 
