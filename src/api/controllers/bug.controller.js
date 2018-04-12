@@ -9,13 +9,13 @@ const {
 } = require('ramda');
 const User = require('../models/user.model');
 const Project = require('../models/project.model');
-const Story = require('../models/story.model');
-
+const Bug = require('../models/story.model');
+/* TODO -- FINISH THIS BIT */
 /**
- * Create new story
+ * Create new bug
  * @public
  */
-exports.createStory = async (req, res, next) => {
+exports.createBug = async (req, res, next) => {
   try {
     const { _id: creator } = req.user;
     const project = await Project.get(req.params.projectId);
@@ -24,40 +24,40 @@ exports.createStory = async (req, res, next) => {
 
     if (!assignee) assignee = req.user;
 
-    const lastStoryCode = project.stories.length ?
+    const lastBugCode = project.bugs.length ?
       Math.max(...map(story => takeLast(4, story.code), project.stories)) :
       '';
-    const code = `${project.code}-${(lastStoryCode + 1).toString().padStart(4, '0')}`;
+    const code = `${project.code}-B${(lastBugCode + 1).toString().padStart(4, '0')}`;
 
-    const story = new Story(merge(req.body, {
+    const bug = new Bug(merge(req.body, {
       code,
       creator,
       project: _id,
       assignee: assignee._id,
     }));
 
-    project.stories = append(story._id, project.stories);
+    project.bugs = append(bug._id, project.bugs);
     await project.save();
-    const savedStory = await story.save();
+    const savedBug = await bug.save();
 
     res.status(httpStatus.CREATED);
-    res.json(savedStory.transform());
+    res.json(savedBug.transform());
   } catch (error) {
     next(error);
   }
 };
 
 /**
- * Get story list
+ * Get bug list
  * @public
  */
-exports.getStoryList = async (req, res, next) => {
+exports.getBugList = async (req, res, next) => {
   try {
     const currentProject = await Project.get(req.params.projectId);
     const { _id: project } = currentProject;
-    const stories = await Story.list({ project });
-    const transformedStories = map(story => story.transform(), stories);
-    res.json(transformedStories);
+    const bugs = await Bug.list({ project });
+    const transformedBugs = map(bug => bug.transform(), bugs);
+    res.json(transformedBugs);
   } catch (error) {
     next(error);
   }
@@ -67,16 +67,16 @@ exports.getStoryList = async (req, res, next) => {
  * Get story list with tasks by sprint
  * @public
  */
-exports.getScrumboardData = async (req, res, next) => {
+exports.getScrumboardBugData = async (req, res, next) => {
   try {
-    const stories = await Story.scrumboardList(req.params.sprintId);
-    const transformedStories = map(story => story.detailedTransform(), stories);
+    const bugs = await Bug.scrumboardList(req.params.sprintId);
+    const transformedBugs = map(story => story.detailedTransform(), bugs);
     const filteredStories = req.query.assigneeId ?
       map(story => Object.assign(story, {
         tasks: filter(task =>
           task.assignee._id.toString() === req.query.assigneeId, story.tasks),
-      }), transformedStories) :
-      transformedStories;
+      }), transformedBugs) :
+      transformedBugs;
     res.json(filteredStories);
   } catch (error) {
     next(error);
@@ -89,7 +89,7 @@ exports.getScrumboardData = async (req, res, next) => {
  */
 exports.getStorySummary = async (req, res, next) => {
   try {
-    const story = await Story.detailedView(req.params.storyId);
+    const story = await Bug.detailedView(req.params.storyId);
     const transformedStory = story.detailedTransform();
     res.json(transformedStory);
   } catch (error) {
@@ -103,7 +103,7 @@ exports.getStorySummary = async (req, res, next) => {
  */
 exports.updateStory = async (req, res, next) => {
   try {
-    const story = await Story.get(req.params.storyId);
+    const story = await Bug.get(req.params.storyId);
 
     let assignee = await User.getIfExists(req.body.assignee);
     if (!assignee) assignee = req.user;
@@ -123,7 +123,7 @@ exports.updateStory = async (req, res, next) => {
  */
 exports.removeStory = async (req, res, next) => {
   try {
-    const story = await Story.get(req.params.storyId);
+    const story = await Bug.get(req.params.storyId);
     const removedStory = story.remove();
     removedStory
       .then(() => res.status(httpStatus.NO_CONTENT).end());

@@ -1,6 +1,8 @@
 const mongoose = require('mongoose');
 const timeSchema = require('./time.schema');
+const httpStatus = require('http-status');
 const { forEach, reject, isNil } = require('ramda');
+const APIError = require('../utils/APIError');
 
 /**
  * Bug Schema
@@ -93,6 +95,60 @@ bugSchema.statics = {
       .populate('assignee', ['name', 'lastname'])
       .sort({ createdAt: -1 })
       .exec();
+  },
+
+  async scrumboardList(id) {
+    try {
+      let stories;
+      if (mongoose.Types.ObjectId.isValid(id)) {
+        stories = await this.find({
+          sprint: id,
+        })
+          .populate('assignee', ['_id', 'name', 'lastname'])
+          .populate('creator', ['_id', 'name', 'lastname'])
+          .populate('sprint', ['_id', 'indicator'])
+          .exec();
+      }
+
+      if (stories.length) {
+        return stories;
+      }
+
+      throw new APIError({
+        message: 'Specified sprint does not have any stories or is not a valid sprint',
+        status: httpStatus.NOT_FOUND,
+      });
+    } catch (error) {
+      throw error;
+    }
+  },
+
+  /**
+   * Get bug
+   *
+   * @param {String} bug - The id of the bug.
+   * @returns {Promise<Bug, APIError>}
+   */
+  async get(id) {
+    try {
+      let bug;
+
+      if (mongoose.Types.ObjectId.isValid(id)) {
+        bug = await this.findById(id)
+          .exec();
+      }
+
+      if (bug) {
+        return bug;
+      }
+
+      throw new APIError({
+        message: 'Story does not exist',
+        status: httpStatus.NOT_FOUND,
+      });
+    } catch (error) {
+      throw error;
+    }
   },
 };
 

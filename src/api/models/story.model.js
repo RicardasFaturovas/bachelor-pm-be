@@ -215,6 +215,12 @@ storySchema.statics = {
     }
   },
 
+  /**
+   * Get story list for scrumboard
+   *
+   * @param {String} id - Id of the sprint to search by
+   * @returns {Promise<Story[], APIError>}
+   */
   async scrumboardList(id) {
     try {
       let stories;
