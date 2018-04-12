@@ -1,7 +1,8 @@
 const mongoose = require('mongoose');
-const timeSchema = require('./time.schema');
 const httpStatus = require('http-status');
 const { forEach, reject, isNil } = require('ramda');
+
+const { schema: timeSchema, formatTime } = require('./time.schema');
 const APIError = require('../utils/APIError');
 
 /**
@@ -14,7 +15,7 @@ const priorities = ['blocker', 'critical', 'major', 'medium', 'minor'];
 
 const bugSchema = new mongoose.Schema({
   code: {
-    type: Number,
+    type: String,
     required: true,
   },
   name: {
@@ -59,11 +60,13 @@ bugSchema.method({
   transform() {
     const transformed = {};
     const fields = [
+      '_id',
       'code',
       'name',
       'description',
       'state',
       'priority',
+      'sprint',
       'estimatedTime',
       'loggedTime',
       'creator',
@@ -77,6 +80,20 @@ bugSchema.method({
 
     return transformed;
   },
+});
+
+bugSchema.pre('save', function save(next) {
+  try {
+    if (this.loggedTime) {
+      this.loggedTime = formatTime(this.loggedTime);
+    }
+    if (this.estimatedTime) {
+      this.estimatedTime = formatTime(this.estimatedTime);
+    }
+    return next();
+  } catch (error) {
+    return next(error);
+  }
 });
 
 bugSchema.statics = {
@@ -97,12 +114,15 @@ bugSchema.statics = {
       .exec();
   },
 
-  async scrumboardList(id) {
+  async scrumboardList(id, assignee) {
     try {
-      let stories;
+      let bugs;
       if (mongoose.Types.ObjectId.isValid(id)) {
-        stories = await this.find({
-          sprint: id,
+        bugs = await this.find({
+          $and: [
+            { sprint: id },
+            { assignee: !assignee ? { $exists: true } : assignee },
+          ],
         })
           .populate('assignee', ['_id', 'name', 'lastname'])
           .populate('creator', ['_id', 'name', 'lastname'])
@@ -110,12 +130,12 @@ bugSchema.statics = {
           .exec();
       }
 
-      if (stories.length) {
-        return stories;
+      if (bugs.length) {
+        return bugs;
       }
 
       throw new APIError({
-        message: 'Specified sprint does not have any stories or is not a valid sprint',
+        message: 'Specified sprint does not have any bugs or is not a valid sprint',
         status: httpStatus.NOT_FOUND,
       });
     } catch (error) {
@@ -143,13 +163,43 @@ bugSchema.statics = {
       }
 
       throw new APIError({
-        message: 'Story does not exist',
+        message: 'Bug does not exist',
         status: httpStatus.NOT_FOUND,
       });
     } catch (error) {
       throw error;
     }
   },
+
+  /**
+   * Get the bug summary
+   *
+   * @returns {Promise<Bug[]>}
+   */
+  async detailedView(id) {
+    try {
+      let bug;
+
+      if (mongoose.Types.ObjectId.isValid(id)) {
+        bug = await this.findById(id)
+        .populate('assignee', ['_id', 'name', 'lastname'])
+        .populate('creator', ['_id', 'name', 'lastname'])
+        .populate('sprint', ['_id', 'indicator'])
+        .exec();
+      }
+
+      if (bug) {
+        return bug;
+      }
+      throw new APIError({
+        message: 'Bug does not exist',
+        status: httpStatus.NOT_FOUND,
+      });
+    } catch (error) {
+      throw error;
+    }
+  },
+
 };
 
 /**

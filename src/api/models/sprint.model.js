@@ -5,11 +5,12 @@ const {
   isNil,
   map,
   pipe,
-  reduce,
+  concat,
 } = require('ramda');
-const APIError = require('../utils/APIError');
 const httpStatus = require('http-status');
-const { formatTime } = require('./time.schema');
+
+const { calculateTime } = require('./time.schema');
+const APIError = require('../utils/APIError');
 
 
 /**
@@ -52,23 +53,13 @@ const sprintSchema = new mongoose.Schema({
     type: mongoose.Schema.Types.ObjectId,
     ref: 'Story',
   }],
+  bugs: [{
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'Bug',
+  }],
 }, {
   timestamps: true,
 });
-
-const calculateTime = (timeArr) => {
-  if (timeArr.length && !timeArr.includes(undefined)) {
-    return pipe(
-      reduce((acc, val) => ({
-        days: acc.days + val.days,
-        hours: acc.hours + val.hours,
-        minutes: acc.minutes + val.minutes,
-      }), { days: 0, hours: 0, minutes: 0 }),
-      formatTime,
-    )(timeArr);
-  }
-  return { days: 0, hours: 0, minutes: 0 };
-};
 
 sprintSchema.method({
   transform() {
@@ -93,16 +84,18 @@ sprintSchema.method({
       endTime: this.time.days * (this.indicator + 1),
     };
     transformed.chartData = {
-      totalStoryEstimatedTime: this.stories.length ?
+      totalStoryAndBugEstimatedTime: this.stories.length ?
         pipe(
-          map(story => story.estimatedTime),
+          concat,
+          map(el => el.estimatedTime),
           calculateTime,
-        )(this.stories) : null,
-      totalStoryLoggedTime: this.stories.length ?
+        )(this.stories, this.bugs) : null,
+      totalStoryAndBugLoggedTime: this.stories.length ?
         pipe(
+          concat,
           map(story => story.loggedTime),
           calculateTime,
-        )(this.stories) : null,
+        )(this.stories, this.bugs) : null,
     };
 
     return transformed;
@@ -118,6 +111,7 @@ sprintSchema.statics = {
   getOne(id) {
     return this.findById(id)
       .populate('stories', ['state', 'loggedTime', 'estimatedTime'])
+      .populate('bugs', ['state', 'loggedTime', 'estimatedTime'])
       .exec();
   },
 
@@ -131,6 +125,7 @@ sprintSchema.statics = {
 
     return this.find(options)
       .populate('stories', ['state', 'loggedTime', 'estimatedTime'])
+      .populate('bugs', ['state', 'loggedTime', 'estimatedTime'])
       .sort({ indicator: -1 })
       .exec();
   },
@@ -140,9 +135,9 @@ sprintSchema.statics = {
    *
    * @returns {Promise<User, APIError>}
    */
-  async findLatest() {
+  async findLatest(project) {
     try {
-      const sprint = await this.findOne()
+      const sprint = await this.find({ project })
         .sort({ indicator: -1 })
         .limit(1)
         .exec();

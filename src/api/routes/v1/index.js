@@ -4,6 +4,7 @@ const authRoutes = require('./auth.route');
 const projectRoutes = require('./project.route');
 const sprintRoutes = require('./sprint.route');
 const storyRoutes = require('./story.route');
+const bugRoutes = require('./bug.route');
 const taskRoutes = require('./task.route');
 const adminRoutes = require('./admin.route');
 
@@ -24,6 +25,7 @@ router.use('/auth', authRoutes);
 router.use('/projects', projectRoutes);
 router.use('/stories', storyRoutes);
 router.use('/sprints', sprintRoutes);
+router.use('/bugs', bugRoutes);
 router.use('/tasks', taskRoutes);
 router.use('/admin', adminRoutes);
 

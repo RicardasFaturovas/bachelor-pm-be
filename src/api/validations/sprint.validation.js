@@ -13,6 +13,7 @@ module.exports = {
   updateSprint: {
     body: {
       stories: Joi.array().items(Joi.string()).optional(),
+      bugs: Joi.array().items(Joi.string()).optional(),
       state: Joi.string().allow('todo', 'inProgress', 'done').optional(),
     },
   },

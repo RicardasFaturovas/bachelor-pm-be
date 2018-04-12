@@ -124,9 +124,8 @@ exports.updateStory = async (req, res, next) => {
 exports.removeStory = async (req, res, next) => {
   try {
     const story = await Story.get(req.params.storyId);
-    const removedStory = story.remove();
-    removedStory
-      .then(() => res.status(httpStatus.NO_CONTENT).end());
+    await story.remove();
+    res.status(httpStatus.NO_CONTENT).end();
   } catch (error) {
     next(error);
   }

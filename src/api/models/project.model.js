@@ -1,7 +1,8 @@
 const mongoose = require('mongoose');
-const APIError = require('../utils/APIError');
 const httpStatus = require('http-status');
 const { forEach, reject, isNil } = require('ramda');
+
+const APIError = require('../utils/APIError');
 /**
  * Project Schema
  * @private
@@ -48,6 +49,10 @@ const projectSchema = new mongoose.Schema({
     type: mongoose.Schema.Types.ObjectId,
     ref: 'Story',
   }],
+  bugs: [{
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'Bug',
+  }],
 }, {
   timestamps: true,
 });
@@ -82,11 +87,12 @@ projectSchema.statics = {
    *
    * @returns {Promise<Project[]>}
    */
-  list({ creatorId, name }) {
-    const options = reject(isNil, { name, creatorId });
+  list({ creator }) {
+    const options = reject(isNil, { creator });
 
     return this.find(options)
       .populate('stories', ['_id', 'status'])
+      .populate('bugs', ['_id', 'status'])
       .populate('users', ['_id', 'name', 'lastName'])
       .populate('creator', ['_id', 'name', 'lastName'])
       .populate('sprints', ['indicator'])
@@ -119,6 +125,7 @@ projectSchema.statics = {
       if (mongoose.Types.ObjectId.isValid(id)) {
         project = await this.findById(id)
           .populate('stories', ['id', 'code'])
+          .populate('bugs', ['id', 'code'])
           .exec();
       }
       if (project) {
