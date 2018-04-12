@@ -95,12 +95,6 @@ router.route('/login')
 router.route('/refresh-token')
   .post(validate(refresh), controller.refresh);
 
-
-/**
- * TODO: POST /v1/auth/reset-password
- */
-
-
 /**
  * @api {post} v1/auth/refresh-token Facebook Login
  * @apiDescription Login with facebook. Creates a new user if it does not exist

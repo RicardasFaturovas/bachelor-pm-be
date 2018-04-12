@@ -1,6 +1,8 @@
 const mongoose = require('mongoose');
-const timeSchema = require('./time.schema').schema;
+const httpStatus = require('http-status');
+const { schema: timeSchema, formatTime } = require('./time.schema');
 const { forEach, reject, isNil } = require('ramda');
+const APIError = require('../utils/APIError');
 
 /**
  * Task Schema
@@ -12,7 +14,7 @@ const priorities = ['blocker', 'critical', 'major', 'medium', 'minor'];
 
 const taskSchema = new mongoose.Schema({
   code: {
-    type: Number,
+    type: String,
     required: true,
   },
   name: {
@@ -53,18 +55,31 @@ const taskSchema = new mongoose.Schema({
   timestamps: true,
 });
 
+taskSchema.pre('save', function save(next) {
+  try {
+    if (this.loggedTime) {
+      this.loggedTime = formatTime(this.loggedTime);
+    }
+    if (this.estimatedTime) {
+      this.estimatedTime = formatTime(this.estimatedTime);
+    }
+    return next();
+  } catch (error) {
+    return next(error);
+  }
+});
+
 taskSchema.method({
   transform() {
     const transformed = {};
     const fields = [
+      '_id',
+      'code',
       'name',
       'story',
-      'description',
       'state',
-      'priority',
       'estimatedTime',
       'loggedTime',
-      'creator',
       'assignee',
       'createdAt',
     ];
@@ -78,25 +93,46 @@ taskSchema.method({
 });
 
 taskSchema.statics = {
+
+  /**
+   * Get story
+   *
+   * @param {String} id - The id of the story.
+   * @returns {Promise<Story, APIError>}
+   */
+  async get(id) {
+    try {
+      let task;
+      if (mongoose.Types.ObjectId.isValid(id)) {
+        task = await this.findById(id)
+          .populate('story', ['_id', 'code'])
+          .exec();
+      }
+
+      if (task) {
+        return task;
+      }
+
+      throw new APIError({
+        message: 'Task does not exist',
+        status: httpStatus.NOT_FOUND,
+      });
+    } catch (error) {
+      throw error;
+    }
+  },
+
   /**
    * List tasks in descending order of 'createdAt' timestamp.
    *
    * @returns {Promise<Task[]>}
    */
-  list({
-    creator, code, storyCode,
-  }) {
-    const options = reject(isNil, {
-      code,
-      creator,
-      story: {
-        code: storyCode,
-      },
-    });
+  list({ story }) {
+    const options = reject(isNil, { story });
 
     return this.find(options)
-      .populate('creator', ['name', 'lastname'])
-      .populate('assignee', ['name', 'lastname'])
+      .populate('creator', ['_id', 'name', 'lastname'])
+      .populate('assignee', ['_id', 'name', 'lastname'])
       .sort({ createdAt: -1 })
       .exec();
   },

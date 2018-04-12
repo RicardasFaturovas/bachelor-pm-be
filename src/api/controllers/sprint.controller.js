@@ -4,7 +4,7 @@ const {
   times,
   map,
   union,
-  without,
+  omit,
 } = require('ramda');
 
 const Sprint = require('../models/sprint.model');
@@ -36,30 +36,18 @@ exports.createSprints = async (req, res, next) => {
     const time = req.body.sprintTime;
     const latestSprint = await Sprint.findLatest();
 
-    const sprints = latestSprint ?
-      times(indicator => new Sprint({
-        time,
-        indicator: indicator + latestSprint.indicator + 1,
-        state: 'todo',
-        project: project._id,
-      }), req.body.sprintCount) :
-      times(indicator => new Sprint({
-        time,
-        indicator,
-        state: 'todo',
-        project: project._id,
-      }), req.body.sprintCount);
+    const sprints = times(indicator => new Sprint({
+      time,
+      indicator: latestSprint ? indicator + latestSprint.indicator + 1 : indicator,
+      state: 'todo',
+      project: project._id,
+    }), req.body.sprintCount);
 
-    const savedSprints = await Promise.all(map(async (sprint) => {
-      const savedSprint = await sprint.save();
-      return savedSprint ? 'success' : 'error';
-    }, sprints));
+    await Sprint.insertMany(sprints);
 
-    if (!savedSprints.includes('error')) {
-      const sprintIds = map(sprint => sprint._id, sprints);
-      project.sprints = append(...sprintIds, project.sprints);
-      await project.save();
-    }
+    const sprintIds = map(sprint => sprint._id, sprints);
+    project.sprints = append(...sprintIds, project.sprints);
+    await project.save();
 
     res.status(httpStatus.CREATED);
     res.json(map(sprint => sprint.transform(), sprints));
@@ -79,27 +67,23 @@ exports.updateSprint = async (req, res, next) => {
     const sprint = await Sprint.get(project, req.params.sprintIndicator);
 
     if (req.body.stories) {
-      const storyIds = await Promise.all(map(async story =>
-        Story.getIfExists(story), req.body.stories));
-      const nonNullStories = without([null], storyIds);
-      const updatedStories = map(story =>
-        Object.assign(story, { sprint: sprint._id }), without([null], nonNullStories));
+      const stories = await Story.getMultipleById(req.body.stories);
+      if (stories) {
+        const updatedStories = map(story =>
+          Object.assign(story, { sprint: sprint._id }), stories);
 
-      await Promise.all(map(async story => story.save(), updatedStories));
+        await Story.updateMany(updatedStories);
 
-      const sprintStoryIds = sprint.stories.map(el => el.toString());
-      const addedStoryIds = map(story => story.id, nonNullStories);
-      sprint.stories = union(sprintStoryIds, addedStoryIds);
+        const sprintStoryIds = sprint.stories.map(el => el.toString());
+        const addedStoryIds = map(story => story.id, stories);
+        sprint.stories = union(sprintStoryIds, addedStoryIds);
+      }
     }
-
-    const { state } = req.body;
-    const updateSprint = state ?
-      Object.assign(sprint, { state }) :
-      sprint;
+    const updateSprint = Object.assign(sprint, omit(['stories'], req.body));
 
     const savedSprint = await updateSprint.save();
-    const updatedSprint = await Sprint.getOne(savedSprint.id);
-    res.json(updatedSprint.transform());
+    const requeriedSprint = await Sprint.getOne(savedSprint.id);
+    res.json(requeriedSprint.transform());
   } catch (error) {
     next(error);
   }

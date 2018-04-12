@@ -181,6 +181,30 @@ userSchema.statics = {
   },
 
   /**
+   * Get story
+   *
+   * @param {String[]} idArray - An array of user ids.
+   * @returns {Promise<User[]>}
+   */
+  async getMultipleById(idArray) {
+    try {
+      const users = await this.find({
+        _id: {
+          $in: idArray,
+        },
+      }).exec();
+
+      if (users.length) {
+        return users;
+      }
+
+      return null;
+    } catch (error) {
+      throw error;
+    }
+  },
+
+  /**
    * Get user otherwise return null
    *
    * @param {ObjectId} id - The objectId of user.

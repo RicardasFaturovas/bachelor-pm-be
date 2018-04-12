@@ -95,6 +95,7 @@ storySchema.method({
       'code',
       'name',
       'description',
+      'sprint',
       'state',
       'priority',
       'estimatedTime',
@@ -127,6 +128,10 @@ storySchema.pre('save', function save(next) {
   }
 });
 
+storySchema.pre('remove', function remove(next) {
+  this.model('Task').remove({ story: this._id }, next);
+});
+
 storySchema.statics = {
   /**
    * List stories in descending order of 'createdAt' timestamp.
@@ -148,34 +153,120 @@ storySchema.statics = {
    *
    * @returns {Promise<Story[]>}
    */
-  detailedView({
-    project, code,
-  }) {
-    const options = reject(isNil, { code, project });
-
-    return this.findOne(options)
+  detailedView(id) {
+    return this.findById(id)
       .populate('assignee', ['_id', 'name', 'lastname'])
       .populate('creator', ['_id', 'name', 'lastname'])
-      // .populate('sprint', ['_id', 'indicator'])
-      .sort({ createdAt: -1 })
+      .populate('sprint', ['_id', 'indicator'])
+      .populate('tasks', ['_id', 'name', 'code', 'assignee', 'status'])
       .exec();
   },
 
   /**
    * Get story
    *
-   * @param {String} project - The id of the project.
-   * @param {String} code - The code of the story.
-   * @returns {Promise<Project, APIError>}
+   * @param {String} id - The id of the story.
+   * @returns {Promise<Story, APIError>}
    */
-  async get(project, code) {
+  async get(id) {
     try {
-      const story = await this.findOne({
-        $and: [
-          { project },
-          { code },
-        ],
+      let story;
+
+      if (mongoose.Types.ObjectId.isValid(id)) {
+        story = await this.findById(id)
+          .populate('tasks', ['_id', 'code'])
+          .exec();
+      }
+
+      if (story) {
+        return story;
+      }
+
+      throw new APIError({
+        message: 'Story does not exist',
+        status: httpStatus.NOT_FOUND,
+      });
+    } catch (error) {
+      throw error;
+    }
+  },
+
+  /**
+   * Get story
+   *
+   * @param {String[]} idArray - An array of ids of the project.
+   * @returns {Promise<Story[], APIError>}
+   */
+  async getMultipleById(idArray) {
+    try {
+      const stories = await this.find({
+        _id: {
+          $in: idArray,
+        },
       }).exec();
+
+      if (stories.length) {
+        return stories;
+      }
+
+      return null;
+    } catch (error) {
+      throw error;
+    }
+  },
+
+  async scrumboardList(id) {
+    try {
+      let stories;
+      if (mongoose.Types.ObjectId.isValid(id)) {
+        stories = await this.find({
+          sprint: id,
+        })
+          .populate('assignee', ['_id', 'name', 'lastname'])
+          .populate('creator', ['_id', 'name', 'lastname'])
+          .populate('sprint', ['_id', 'indicator'])
+          .populate('tasks', ['_id', 'name', 'code', 'assignee', 'status'])
+          .populate({
+            path: 'tasks',
+            select: ['_id', 'name', 'code', 'assignee', 'status'],
+            populate: {
+              path: 'assignee',
+              select: ['_id', 'name', 'lastName'],
+              model: 'User',
+            },
+          })
+          .exec();
+      }
+
+      if (stories.length) {
+        return stories;
+      }
+
+      throw new APIError({
+        message: 'Specified sprint does not have any stories or is not a valid sprint',
+        status: httpStatus.NOT_FOUND,
+      });
+    } catch (error) {
+      throw error;
+    }
+  },
+
+  /**
+   * Get story
+   *
+   * @param {Sring} id - Id of the task to look for in story
+   * @returns {Promise<Story[], APIError>}
+   */
+  async getByTaskId(id) {
+    try {
+      let story;
+      if (mongoose.Types.ObjectId.isValid(id)) {
+        story = await this.findOne({
+          tasks: {
+            $in: [id],
+          },
+        });
+      }
 
       if (story) {
         return story;
