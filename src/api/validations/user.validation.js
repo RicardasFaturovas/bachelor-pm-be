@@ -60,7 +60,7 @@ module.exports = {
 
   getUsersByEmail: {
     body: {
-      email: Joi.string().required(),
+      email: Joi.string().required().allow(''),
     },
   },
 };

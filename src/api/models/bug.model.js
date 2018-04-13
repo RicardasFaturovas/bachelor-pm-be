@@ -11,7 +11,7 @@ const APIError = require('../utils/APIError');
  */
 const states = ['todo', 'inProgress', 'testing', 'done'];
 const priorities = ['blocker', 'critical', 'major', 'medium', 'minor'];
-
+const storyPoints = ['extraLarge', 'large', 'medium', 'small', 'extraSmall', 'extraExtraSmall'];
 
 const bugSchema = new mongoose.Schema({
   code: {
@@ -36,6 +36,11 @@ const bugSchema = new mongoose.Schema({
   priority: {
     type: String,
     enum: priorities,
+    required: true,
+  },
+  bugPoints: {
+    type: String,
+    enum: storyPoints,
     required: true,
   },
   estimatedTime: timeSchema,
@@ -170,6 +175,64 @@ bugSchema.statics = {
       throw error;
     }
   },
+
+  /**
+   * Get multiple bugs by ids
+   *
+   * @param {String[]} idArray - An array of ids of the bugs.
+   * @returns {Promise<Bug[], APIError>}
+   */
+  async getMultipleById(idArray) {
+    try {
+      const bugs = await this.find({
+        _id: {
+          $in: idArray,
+        },
+      }).exec();
+
+      if (bugs.length) {
+        return bugs;
+      }
+
+      return null;
+    } catch (error) {
+      throw error;
+    }
+  },
+
+  /**
+   * Get multiple bugs by ids
+   *
+   * @param {String[]} idArray - An array of ids of the bugs.
+   * @returns {Promise<Story[], APIError>}
+   */
+  async getMultipleNotDoneById(idArray) {
+    try {
+      const bugs = await this.find({
+        $and: [
+          {
+            _id: {
+              $in: idArray,
+            },
+          },
+          {
+            state: {
+              $ne: 'done',
+            },
+          },
+        ],
+      }).exec();
+
+      if (bugs.length) {
+        return bugs;
+      }
+
+      return null;
+    } catch (error) {
+      throw error;
+    }
+  },
+
 
   /**
    * Get the bug summary

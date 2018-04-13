@@ -6,6 +6,7 @@ module.exports = {
     body: {
       name: Joi.string().max(500).required(),
       priority: Joi.string().allow('blocker', 'critical', 'major', 'medium', 'minor').required(),
+      bugPoints: Joi.string().allow('extraLarge', 'large', 'medium', 'small', 'extraSmall', 'extraExtraSmall').required(),
       state: Joi.string().allow('todo', 'inProgress', 'testing', 'done').default('todo'),
       assignee: Joi.string().optional(),
       description: Joi.string().optional(),
@@ -16,7 +17,8 @@ module.exports = {
     body: {
       name: Joi.string().max(500).optional(),
       priority: Joi.string().allow('blocker', 'critical', 'major', 'medium', 'minor').optional(),
-      state: Joi.string().allow('todo', 'inProgress', 'testing', 'done').default('todo').optional(),
+      bugPoints: Joi.string().allow('extraLarge', 'large', 'medium', 'small', 'extraSmall', 'extraExtraSmall').optional(),
+      state: Joi.string().allow('todo', 'inProgress', 'testing', 'done').optional(),
       assignee: Joi.string().optional(),
       description: Joi.string().optional(),
       estimatedTime: Joi.object({

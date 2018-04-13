@@ -5,12 +5,14 @@ const {
   map,
   omit,
   takeLast,
+  pathOr,
   filter,
 } = require('ramda');
 const User = require('../models/user.model');
 const Project = require('../models/project.model');
+const Sprint = require('../models/sprint.model');
 const Story = require('../models/story.model');
-
+const { storyPoints } = require('../models/storyPoints.schema');
 /**
  * Create new story
  * @public
@@ -108,6 +110,33 @@ exports.updateStory = async (req, res, next) => {
     let assignee = await User.getIfExists(req.body.assignee);
     if (!assignee) assignee = req.user;
     story.assignee = assignee._id;
+
+    // if user updates a state to done, remove story points from sprint
+    if (req.body.state === 'done' && story.state !== 'done') {
+      const sprint = await Sprint.getByStory(req.params.storyId);
+      const dayToEdit = sprint.sprintStartDate ?
+        (new Date().getDay() - sprint.sprintStartDate.getDay()) + 1 :
+        1;
+      let currentStoryPointsLeft = pathOr(0, ['remainingSize', dayToEdit], sprint);
+      currentStoryPointsLeft -= storyPoints[story.storyPoints];
+      sprint.remainingSize = Object.assign(sprint.remainingSize,
+        { [dayToEdit]: currentStoryPointsLeft });
+      await sprint.save();
+    }
+
+    // if user updates a state to not done, add the story points back to the sprint
+    if (req.body.state && req.body.state !== 'done' && story.state === 'done') {
+      const sprint = await Sprint.getByStory(req.params.storyId);
+      const dayToEdit = sprint.sprintStartDate ?
+        (new Date().getDay() - sprint.sprintStartDate.getDay()) + 1 :
+        1;
+      let currentStoryPointsLeft = pathOr(0, ['remainingSize', dayToEdit], sprint);
+      currentStoryPointsLeft += storyPoints[story.storyPoints];
+      sprint.remainingSize = Object.assign(sprint.remainingSize,
+        { [dayToEdit]: currentStoryPointsLeft });
+      await sprint.save();
+    }
+
     const updatedStory = Object.assign(story, omit(['assignee'], req.body));
 
     const savedStory = await updatedStory.save();

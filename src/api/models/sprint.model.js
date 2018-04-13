@@ -10,6 +10,7 @@ const {
 const httpStatus = require('http-status');
 
 const { calculateTime } = require('./time.schema');
+const { storyPointsSizeSchema } = require('./storyPoints.schema');
 const APIError = require('../utils/APIError');
 
 
@@ -37,6 +38,10 @@ const sprintSchema = new mongoose.Schema({
     enum: states,
     required: true,
   },
+  sprintStartDate: {
+    type: Date,
+  },
+  remainingSize: storyPointsSizeSchema,
   creator: {
     type: mongoose.Schema.Types.ObjectId,
     ref: 'User',
@@ -74,6 +79,8 @@ sprintSchema.method({
       'assigne',
       'createdAt',
       'stories',
+      'bugs',
+      'sprintStartDate',
     ];
 
     forEach((field) => {
@@ -98,6 +105,8 @@ sprintSchema.method({
         )(this.stories, this.bugs) : null,
     };
 
+    transformed.remainingSize = reject((el => typeof el !== 'number'), this.remainingSize);
+
     return transformed;
   },
 });
@@ -110,8 +119,8 @@ sprintSchema.statics = {
    */
   getOne(id) {
     return this.findById(id)
-      .populate('stories', ['state', 'loggedTime', 'estimatedTime'])
-      .populate('bugs', ['state', 'loggedTime', 'estimatedTime'])
+      .populate('stories', ['state', 'loggedTime', 'estimatedTime', 'storyPoints'])
+      .populate('bugs', ['state', 'loggedTime', 'estimatedTime', 'bugPoints'])
       .exec();
   },
 
@@ -124,8 +133,8 @@ sprintSchema.statics = {
     const options = reject(isNil, { project });
 
     return this.find(options)
-      .populate('stories', ['state', 'loggedTime', 'estimatedTime'])
-      .populate('bugs', ['state', 'loggedTime', 'estimatedTime'])
+      .populate('stories', ['state', 'loggedTime', 'estimatedTime', 'storyPoints'])
+      .populate('bugs', ['state', 'loggedTime', 'estimatedTime', 'bugPoints'])
       .sort({ indicator: -1 })
       .exec();
   },
@@ -156,7 +165,7 @@ sprintSchema.statics = {
    *
    * @param {String} project - The id of the project.
    * @param {String} indicator - The sprint indicator.
-   * @returns {Promise<Project, APIError>}
+   * @returns {Promise<Sprint, APIError>}
    */
   async get(project, indicator) {
     try {
@@ -165,6 +174,33 @@ sprintSchema.statics = {
           { project },
           { indicator },
         ],
+      }).exec();
+
+      if (sprint) {
+        return sprint;
+      }
+
+      throw new APIError({
+        message: 'Sprint does not exist',
+        status: httpStatus.NOT_FOUND,
+      });
+    } catch (error) {
+      throw error;
+    }
+  },
+
+  /**
+   * Get sprint by story id
+   *
+   * @param {String} story - The id of the story.
+   * @returns {Promise<Sprint, APIError>}
+   */
+  async getByStory(story) {
+    try {
+      const sprint = await this.findOne({
+        stories: {
+          $in: [story],
+        },
       }).exec();
 
       if (sprint) {
