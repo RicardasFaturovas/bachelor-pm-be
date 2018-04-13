@@ -19,7 +19,7 @@ exports.createProject = async (req, res, next) => {
   try {
     const { _id: creator } = req.user;
     let users = [];
-    if (req.body.users) {
+    if (req.body.users && req.body.users.length) {
       users = await User.getMultipleById(req.body.users);
       if (users.length) {
         const updatedUsers = map(userObj =>
