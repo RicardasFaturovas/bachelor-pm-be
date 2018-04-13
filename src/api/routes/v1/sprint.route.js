@@ -25,6 +25,51 @@ router
   .get(authorize(), controller.getSprintList);
 
 router
+  .route('/:projectId/:sprintIndicator/sprint-summary')
+  /**
+   * @api {get} v1/:projectId/:sprintIndicator/sprint-summary Get sprint summary
+   * @apiDescription Get a details of a sprint
+   * @apiVersion 1.0.0
+   * @apiName GetSprintSummary
+   * @apiGroup Sprint
+   * @apiPermission user
+   *
+   * @apiHeader {String} Authorization  User's access token
+   *
+   * @apiSuccess {String}  id             Sprint id
+   * @apiSuccess {Number}  indicator      Sprint indicator
+   * @apiSuccess {TimeObj} time           Sprint time {days: Number}
+   * @apiSuccess {String}  state          Sprint state
+   * @apiSuccess {String}  project        Project containing the sprint id
+   * @apiSuccess {Object}  period         Sprint period in days {startTime: Number, endTime: Number}
+   * @apiSuccess {Objcet}  chartData      Sprint chart data
+   *  {totalStoryEstimatedTime: TimeOjb, totalStoryLoggedTime: TimeOjb}
+   * @apiSuccess {Date}    createdAt      Timestamp
+   *
+   * @apiError (Unauthorized 401)  Unauthorized  Only authenticated users can access the data
+   */
+  .get(authorize(), controller.getSprintSummary);
+
+router
+  .route('/:projectId/:sprintIndicator/burndown-chart')
+  /**
+   * @api {get} v1/:projectId/:sprintIndicator/burndown-chart Get sprint burndown chart
+   * @apiDescription Get a data for the current sprint burndown chart
+   * @apiVersion 1.0.0
+   * @apiName GetSprintBurndownData
+   * @apiGroup Sprint
+   * @apiPermission user
+   *
+   * @apiHeader {String} Authorization  User's access token
+   *
+   * @apiSuccess {Object}  idealSize      Object ex: {1: 5, 2: 4, 3: 3, 2: 2, 1: 1}
+   * @apiSuccess {Object}  remainingSize  Object ex: {1: 5, 2: 4, 3: 3, 2: 2, 1: 1}
+   *
+   * @apiError (Unauthorized 401)  Unauthorized  Only authenticated users can access the data
+   */
+  .get(authorize(), controller.getSprintBurndownData);
+
+router
   .route('/:projectId/create-sprints')
   /**
    * @api {post} v1/sprints/:projectId/create-sprints Create Story

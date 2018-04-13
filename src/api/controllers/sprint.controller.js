@@ -1,8 +1,11 @@
 const httpStatus = require('http-status');
 const {
   append,
+  add,
+  assoc,
   times,
   map,
+  filter,
   reduce,
   union,
   omit,
@@ -63,6 +66,38 @@ exports.getSprintList = async (req, res, next) => {
     next(error);
   }
 };
+
+/**
+ * Get sprint summary
+ * @public
+ */
+exports.getSprintSummary = async (req, res, next) => {
+  try {
+    const currentProject = await Project.get(req.params.projectId);
+    const { _id: project } = currentProject;
+    const sprint = await Sprint.get(project, req.params.sprintIndicator);
+
+    res.json(sprint.transform());
+  } catch (error) {
+    next(error);
+  }
+};
+
+/**
+ * Get sprint list
+ * @public
+ */
+exports.getSprintBurndownData = async (req, res, next) => {
+  try {
+    const currentProject = await Project.get(req.params.projectId);
+    const { _id: project } = currentProject;
+    const sprint = await Sprint.get(project, req.params.sprintIndicator);
+
+    res.json(sprint.transformBurndownData());
+  } catch (error) {
+    next(error);
+  }
+};
 /**
  * Create new sprint
  * @public
@@ -113,18 +148,30 @@ exports.updateSprint = async (req, res, next) => {
     const dayToEdit = sprint.sprintStartDate ?
       (new Date().getDay() - sprint.sprintStartDate.getDay()) + 1 :
       1;
-    const updatedSprintStories = await Story.getMultipleNotDoneById(sprint.stories);
+    const updatedSprintStories = await Story.getMultipleById(sprint.stories);
+    const updatedSprintBugs = await Bug.getMultipleById(sprint.bugs);
 
-    const totalAddedStoryPoints = reduce(
+    const unfinishedSprintStories = filter(el => el.state !== 'done', updatedSprintStories);
+    const unfinishedSprintBugs = filter(el => el.state !== 'done', updatedSprintStories);
+
+    const totalSprintStoryPoints = reduce(
       (acc, val) => acc + storyPoints[val.storyPoints], 0, updatedSprintStories);
-
-    // update the story points left by adding all the story points of the newly added bugs
-    const updatedSprintBugs = await Bug.getMultipleNotDoneById(sprint.bugs);
-    const totalAddedBugPoints = reduce(
+    const totalSprintBugPoints = reduce(
       (acc, val) => acc + storyPoints[val.bugPoints], 0, updatedSprintBugs);
+    const totalPoints = totalSprintStoryPoints + totalSprintBugPoints;
+
+    sprint.idealSize = reduce((acc, val) =>
+      assoc([val], totalPoints - ((val - 1) * (totalPoints / (sprint.time.days - 1))), acc),
+      {},
+      times(add(1), sprint.time.days));
+
+    const totalUnifinishedStoryPoints = reduce(
+      (acc, val) => acc + storyPoints[val.storyPoints], 0, unfinishedSprintStories);
+    const totalUnfinishedBugPoints = reduce(
+      (acc, val) => acc + storyPoints[val.bugPoints], 0, unfinishedSprintBugs);
 
     sprint.remainingSize = Object.assign(sprint.remainingSize,
-      { [dayToEdit]: totalAddedBugPoints + totalAddedStoryPoints });
+      { [dayToEdit]: totalUnifinishedStoryPoints + totalUnfinishedBugPoints });
 
     if (req.body.state === 'inProgress') {
       sprint.sprintStartDate = new Date();

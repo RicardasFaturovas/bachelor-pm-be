@@ -42,6 +42,7 @@ const sprintSchema = new mongoose.Schema({
     type: Date,
   },
   remainingSize: storyPointsSizeSchema,
+  idealSize: storyPointsSizeSchema,
   creator: {
     type: mongoose.Schema.Types.ObjectId,
     ref: 'User',
@@ -74,12 +75,7 @@ sprintSchema.method({
       'indicator',
       'time',
       'state',
-      'creator',
-      'project',
-      'assigne',
-      'createdAt',
       'stories',
-      'bugs',
       'sprintStartDate',
     ];
 
@@ -105,7 +101,29 @@ sprintSchema.method({
         )(this.stories, this.bugs) : null,
     };
 
+    return transformed;
+  },
+
+  transformBurndownData() {
+    const transformed = {};
+    const fields = [
+      'id',
+      'indicator',
+      'time',
+      'state',
+      'sprintStartDate',
+    ];
+
+    forEach((field) => {
+      transformed[field] = this[field];
+    }, fields);
+    transformed.period = {
+      startTime: this.time.days * this.indicator,
+      endTime: this.time.days * (this.indicator + 1),
+    };
+
     transformed.remainingSize = reject((el => typeof el !== 'number'), this.remainingSize);
+    transformed.idealSize = reject((el => typeof el !== 'number'), this.idealSize);
 
     return transformed;
   },
@@ -133,8 +151,8 @@ sprintSchema.statics = {
     const options = reject(isNil, { project });
 
     return this.find(options)
-      .populate('stories', ['state', 'loggedTime', 'estimatedTime', 'storyPoints'])
-      .populate('bugs', ['state', 'loggedTime', 'estimatedTime', 'bugPoints'])
+      .populate('stories', ['state', 'loggedTime', 'estimatedTime'])
+      .populate('bugs', ['state', 'loggedTime', 'estimatedTime'])
       .sort({ indicator: -1 })
       .exec();
   },
@@ -174,7 +192,10 @@ sprintSchema.statics = {
           { project },
           { indicator },
         ],
-      }).exec();
+      })
+      .populate('stories', ['state', 'loggedTime', 'estimatedTime', 'storyPoints'])
+      .populate('bugs', ['state', 'loggedTime', 'estimatedTime', 'bugPoints'])
+      .exec();
 
       if (sprint) {
         return sprint;
