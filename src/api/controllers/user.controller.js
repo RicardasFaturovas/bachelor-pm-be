@@ -1,5 +1,5 @@
 const httpStatus = require('http-status');
-const { omit } = require('ramda');
+const { omit, map } = require('ramda');
 const User = require('../models/user.model');
 const { handler: errorHandler } = require('../middlewares/error');
 
@@ -35,6 +35,20 @@ exports.loggedIn = async (req, res, next) => {
     next(error);
   }
 };
+
+/**
+ * Get users by email
+ * @public
+ */
+exports.getUsersByEmail = async (req, res, next) => {
+  try {
+    const users = await User.findByEmailSubstring(req.body.email);
+    res.json(map(user => user.getEmailInfo(), users));
+  } catch (error) {
+    next(error);
+  }
+};
+
 
 /**
  * Create new user

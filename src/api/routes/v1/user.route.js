@@ -5,6 +5,7 @@ const { authorize } = require('../../middlewares/auth');
 const {
   updateUser,
   updateUserPassword,
+  getUsersByEmail,
 } = require('../../validations/user.validation');
 
 const router = express.Router();
@@ -37,6 +38,30 @@ router
   .get(authorize(), controller.loggedIn);
 
 router
+  .route('/find-users')
+  /**
+   * @api {get} v1/users/find-users Find Users
+   * @apiDescription Get users by emaial query
+   * @apiVersion 1.0.0
+   * @apiName GetUsersByEmail
+   * @apiGroup User
+   * @apiPermission user
+   *
+   * @apiHeader {String} Authorization  User's access token
+   *
+   * @apiParam  {String}   email      User's email to query by
+   *
+   * @apiSuccess {String}  id         User's id
+   * @apiSuccess {String}  name       User's name
+   * @apiSuccess {String}  lastName   User's last name
+   * @apiSuccess {String}  email      User's email
+   * @apiSuccess {Date}    createdAt  Timestamp
+   *
+   * @apiError (Unauthorized 401)  Unauthorized  Only authenticated Users can access the data
+   */
+  .post(authorize(), validate(getUsersByEmail), controller.getUsersByEmail);
+
+router
   .route('/update-password')
   /**
    * @api {patch} v1/users/update-password Update password
@@ -49,7 +74,7 @@ router
    * @apiHeader {String} Authorization  User's access token
    *
    * @apiParam  {String{6..128}}     oldPassword    User's current password
-   * @apiParam  {String{6..128}}     newPassword        User's new password
+   * @apiParam  {String{6..128}}     newPassword    User's new password
    *
    * @apiSuccess {String}  success    true if successful
 

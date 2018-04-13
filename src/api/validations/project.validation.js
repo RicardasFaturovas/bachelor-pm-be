@@ -6,7 +6,7 @@ module.exports = {
     body: {
       code: Joi.string().max(4).required(),
       name: Joi.string().max(128).required(),
-      startDate: Joi.date().iso().optional(),
+      startDate: Joi.date().iso().allow('').optional(),
       users: Joi.array().items(Joi.string()).optional(),
       description: Joi.string().max(500).optional(),
     },
