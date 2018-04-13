@@ -7,7 +7,7 @@ module.exports = {
       code: Joi.string().max(4).required(),
       name: Joi.string().max(128).required(),
       startDate: Joi.date().iso().allow('').optional(),
-      users: Joi.array().items(Joi.string()).optional(),
+      users: Joi.array().items(Joi.string()).allow('').optional(),
       description: Joi.string().max(500).optional(),
     },
   },
