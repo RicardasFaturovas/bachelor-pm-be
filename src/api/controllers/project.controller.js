@@ -40,7 +40,7 @@ exports.createProject = async (req, res, next) => {
     const savedProject = await project.save();
 
     res.status(httpStatus.CREATED);
-    res.json(savedProject.transform());
+    res.json(savedProject.summaryTransform());
   } catch (error) {
     next(error);
   }
@@ -72,6 +72,20 @@ exports.getProjectList = async (req, res, next) => {
     const projects = await Project.list(queryOptions);
     const transformedProjects = map(project => project.summaryTransform(), projects);
     res.json(transformedProjects);
+  } catch (error) {
+    next(error);
+  }
+};
+
+/**
+ * Get project details
+ * @public
+ */
+exports.getProjectDetails = async (req, res, next) => {
+  try {
+    const project = await Project.getProjectDetails(req.params.id);
+
+    res.json(project.detailsTransform());
   } catch (error) {
     next(error);
   }
