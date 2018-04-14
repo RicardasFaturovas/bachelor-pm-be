@@ -19,16 +19,19 @@ exports.createProject = async (req, res, next) => {
   try {
     const { _id: creator } = req.user;
     let users = [];
+
     if (req.body.users && req.body.users.length) {
       users = await User.getMultipleByEmail(req.body.users);
-      if (users.length) {
-        const updatedUsers = map(userObj =>
-          Object.assign(userObj, { projects: append(project.id, user.projects) }), users);
-        await User.updateMany(updatedUsers);
-      }
     }
+    const userIds = users.length ? map(el => el._id, users) : [];
     const { user } = req;
-    const project = new Project(merge(req.body, { creator, users }));
+    const project = new Project(merge(req.body, { creator, users: userIds }));
+
+    if (users.length) {
+      const updatedUsers = map(userObj =>
+        Object.assign(userObj, { projects: append(project.id, user.projects) }), users);
+      await User.updateMany(updatedUsers);
+    }
 
     user.projects = append(project._id, user.projects);
     project.users = append(user._id, project.users);
