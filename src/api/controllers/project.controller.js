@@ -114,7 +114,7 @@ exports.updateProject = async (req, res, next) => {
   try {
     const project = await Project.get(req.params.id);
     if (req.body.users) {
-      const users = await User.getMultipleById(req.body.users);
+      const users = await User.getMultipleByEmail(req.body.users);
       if (users) {
         const updatedUsers = map((user) => {
           const userProjectIds = user.projects.map(el => el.toString());
@@ -155,7 +155,7 @@ exports.removeUserFromProject = async (req, res, next) => {
 
     const savedProject = await updatedProject.save();
     const requeriedProject = await Project.getOne(savedProject.id);
-    res.json(requeriedProject.transform());
+    res.json(requeriedProject.detailsTransform());
   } catch (error) {
     next(error);
   }
