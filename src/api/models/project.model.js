@@ -96,6 +96,24 @@ projectSchema.method({
     transformed.sprints = this.sprints.length;
     return transformed;
   },
+
+  detailsTransform() {
+    const transformed = {};
+    const fields = [
+      'id',
+      'name',
+      'createdAt',
+      'creator',
+      'users',
+      'description',
+    ];
+
+    forEach((field) => {
+      transformed[field] = this[field];
+    }, fields);
+
+    return transformed;
+  },
 });
 
 projectSchema.statics = {
@@ -140,6 +158,35 @@ projectSchema.statics = {
         project = await this.findById(id)
           .populate('stories', ['id', 'code'])
           .populate('bugs', ['id', 'code'])
+          .exec();
+      }
+      if (project) {
+        return project;
+      }
+
+      throw new APIError({
+        message: 'Project does not exist',
+        status: httpStatus.NOT_FOUND,
+      });
+    } catch (error) {
+      throw error;
+    }
+  },
+
+  /**
+   * Get project
+   *
+   * @param {String} id - The id of the project.
+   * @returns {Promise<Project, APIError>}
+   */
+  async getProjectDetails(id) {
+    try {
+      let project;
+
+      if (mongoose.Types.ObjectId.isValid(id)) {
+        project = await this.findById(id)
+          .populate('users', ['name', 'lastName'])
+          .populate('creator', ['name', 'lastName'])
           .exec();
       }
       if (project) {

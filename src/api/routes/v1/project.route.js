@@ -9,7 +9,7 @@ const router = express.Router();
 router
   .route('/project-list')
   /**
-   * @api {get} v1/projects List User Projects
+   * @api {get} v1/projects/project-list List User Projects
    * @apiDescription Get a list of the current users projects
    * @apiVersion 1.0.0
    * @apiName ListUserProjects
@@ -24,9 +24,26 @@ router
    * @apiSuccess {Object[]} projects List of current user projects.
    *
    * @apiError (Unauthorized 401)  Unauthorized  Only authenticated users can access the data
-   * @apiError (Forbidden 403)     Forbidden     Only admins can access the data
    */
   .get(authorize(), controller.getProjectList);
+
+router
+  .route('/:id/project-details')
+  /**
+   * @api {get} v1/projects/:id/project-details Get Projects details
+   * @apiDescription Get the details of the current project
+   * @apiVersion 1.0.0
+   * @apiName GetProjectDetails
+   * @apiGroup Project
+   * @apiPermission user
+   *
+   * @apiHeader {String} Authorization  User's access token
+   *
+   * @apiSuccess {Project} Project details
+   *
+   * @apiError (Unauthorized 401)  Unauthorized  Only authenticated users can access the data
+   */
+  .get(authorize(), controller.getProjectDetails);
 
 router
   .route('/create-project')
