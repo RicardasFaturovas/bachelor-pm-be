@@ -4,11 +4,14 @@ const {
   merge,
   map,
   omit,
+  pathOr,
   takeLast,
 } = require('ramda');
 const User = require('../models/user.model');
 const Project = require('../models/project.model');
+const Sprint = require('../models/sprint.model');
 const Bug = require('../models/bug.model');
+const { storyPoints } = require('../models/storyPoints.schema');
 /**
  * Create new bug
  * @public
@@ -101,6 +104,33 @@ exports.updateBug = async (req, res, next) => {
     let assignee = await User.getIfExists(req.body.assignee);
     if (!assignee) assignee = req.user;
     bug.assignee = assignee._id;
+
+    // if user updates a state to done, remove story points from sprint
+    if (req.body.state === 'done' && bug.state !== 'done') {
+      const sprint = await Sprint.getByBug(req.params.bugId);
+      const dayToEdit = sprint.sprintStartDate ?
+        (new Date().getDay() - sprint.sprintStartDate.getDay()) + 1 :
+        1;
+      let currentStoryPointsLeft = pathOr(0, ['remainingSize', dayToEdit], sprint);
+      currentStoryPointsLeft -= storyPoints[bug.bugPoints];
+      sprint.remainingSize = Object.assign(sprint.remainingSize,
+        { [dayToEdit]: currentStoryPointsLeft });
+      await sprint.save();
+    }
+
+    // if user updates a state to not done, add the story points back to the sprint
+    if (req.body.state && req.body.state !== 'done' && bug.state === 'done') {
+      const sprint = await Sprint.getByBug(req.params.bugId);
+      const dayToEdit = sprint.sprintStartDate ?
+        (new Date().getDay() - sprint.sprintStartDate.getDay()) + 1 :
+        1;
+      let currentStoryPointsLeft = pathOr(0, ['remainingSize', dayToEdit], sprint);
+      currentStoryPointsLeft += storyPoints[bug.bugPoints];
+      sprint.remainingSize = Object.assign(sprint.remainingSize,
+        { [dayToEdit]: currentStoryPointsLeft });
+      await sprint.save();
+    }
+
     const updatedBug = Object.assign(bug, omit(['assignee'], req.body));
 
     const savedBug = await updatedBug.save();

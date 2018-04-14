@@ -20,7 +20,7 @@ exports.createProject = async (req, res, next) => {
     const { _id: creator } = req.user;
     let users = [];
     if (req.body.users && req.body.users.length) {
-      users = await User.getMultipleById(req.body.users);
+      users = await User.getMultipleByEmail(req.body.users);
       if (users.length) {
         const updatedUsers = map(userObj =>
           Object.assign(userObj, { projects: append(project.id, user.projects) }), users);
@@ -67,7 +67,7 @@ exports.getProjectList = async (req, res, next) => {
     const { _id: creator } = req.user;
     const queryOptions = merge(req.query, { creator });
     const projects = await Project.list(queryOptions);
-    const transformedProjects = map(project => project.transform(), projects);
+    const transformedProjects = map(project => project.summaryTransform(), projects);
     res.json(transformedProjects);
   } catch (error) {
     next(error);

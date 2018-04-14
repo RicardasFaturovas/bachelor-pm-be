@@ -10,7 +10,7 @@ const APIError = require('../utils/APIError');
  */
 const states = ['todo', 'inProgress', 'testing', 'done'];
 const priorities = ['blocker', 'critical', 'major', 'medium', 'minor'];
-const storyPoints = ['extraLarge', 'large', 'medium', 'small', 'extraSmall'];
+const storyPoints = ['extraLarge', 'large', 'medium', 'small', 'extraSmall', 'extraExtraSmall'];
 
 const storySchema = new mongoose.Schema({
   code: {
@@ -208,9 +208,9 @@ storySchema.statics = {
   },
 
   /**
-   * Get story
+   * Get multiple stories by ids
    *
-   * @param {String[]} idArray - An array of ids of the project.
+   * @param {String[]} idArray - An array of ids of the stories.
    * @returns {Promise<Story[], APIError>}
    */
   async getMultipleById(idArray) {
@@ -219,6 +219,39 @@ storySchema.statics = {
         _id: {
           $in: idArray,
         },
+      }).exec();
+
+      if (stories.length) {
+        return stories;
+      }
+
+      return null;
+    } catch (error) {
+      throw error;
+    }
+  },
+
+  /**
+   * Get multiple stories by ids
+   *
+   * @param {String[]} idArray - An array of ids of the stories.
+   * @returns {Promise<Story[], APIError>}
+   */
+  async getMultipleNotDoneById(idArray) {
+    try {
+      const stories = await this.find({
+        $and: [
+          {
+            _id: {
+              $in: idArray,
+            },
+          },
+          {
+            state: {
+              $ne: 'done',
+            },
+          },
+        ],
       }).exec();
 
       if (stories.length) {

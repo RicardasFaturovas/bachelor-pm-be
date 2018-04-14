@@ -79,6 +79,23 @@ projectSchema.method({
 
     return transformed;
   },
+
+  summaryTransform() {
+    const transformed = {};
+    const fields = [
+      'id',
+      'name',
+      'description',
+      'stories',
+    ];
+
+    forEach((field) => {
+      transformed[field] = this[field];
+    }, fields);
+
+    transformed.sprints = this.sprints.length;
+    return transformed;
+  },
 });
 
 projectSchema.statics = {
@@ -91,10 +108,7 @@ projectSchema.statics = {
     const options = reject(isNil, { creator });
 
     return this.find(options)
-      .populate('stories', ['_id', 'status'])
-      .populate('bugs', ['_id', 'status'])
-      .populate('users', ['_id', 'name', 'lastName'])
-      .populate('creator', ['_id', 'name', 'lastName'])
+      .populate('stories', ['state'])
       .populate('sprints', ['indicator'])
       .sort({ createdAt: -1 })
       .exec();

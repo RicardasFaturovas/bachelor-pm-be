@@ -200,14 +200,14 @@ userSchema.statics = {
   /**
    * Get story
    *
-   * @param {String[]} idArray - An array of user ids.
+   * @param {String[]} emailArray - An array of user ids.
    * @returns {Promise<User[]>}
    */
-  async getMultipleById(idArray) {
+  async getMultipleByEmail(emailArray) {
     try {
       const users = await this.find({
-        _id: {
-          $in: idArray,
+        email: {
+          $in: emailArray,
         },
       }).exec();
 
@@ -317,9 +317,12 @@ userSchema.statics = {
    */
   async findByEmailSubstring(regex) {
     try {
-      const users = await this.find({
-        email: { $regex: regex, $options: 'i' },
-      });
+      let users;
+      if (regex !== '') {
+        users = await this.find({
+          email: { $regex: regex, $options: 'i' },
+        });
+      }
       if (users.length) {
         return users;
       }
