@@ -151,8 +151,8 @@ sprintSchema.statics = {
     const options = reject(isNil, { project });
 
     return this.find(options)
-      .populate('stories', ['state', 'loggedTime', 'estimatedTime'])
-      .populate('bugs', ['state', 'loggedTime', 'estimatedTime'])
+      .populate('stories', ['state', 'loggedTime', 'estimatedTime', 'name', 'code'])
+      .populate('bugs', ['state', 'loggedTime', 'estimatedTime', 'name', 'code'])
       .sort({ indicator: -1 })
       .exec();
   },

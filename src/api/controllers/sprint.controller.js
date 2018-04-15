@@ -28,7 +28,7 @@ const updateStories = async (projectId, requestStories, sprint) => {
     await Story.updateMany(updatedStories);
 
     // update sprint with new stories
-    const sprintStoryIds = map(el => el.toString(), updatedSprint.stories);
+    const sprintStoryIds = map(el => el._id.toString(), updatedSprint.stories);
     const addedStoryIds = map(story => story.id, stories);
     updatedSprint.stories = union(sprintStoryIds, addedStoryIds);
   }
@@ -45,7 +45,7 @@ const updateBugs = async (projectId, requestBugs, sprint) => {
     await Bug.updateMany(updatedBugs);
 
     // update sprint with new bugs
-    const sprintBugIds = map(el => el.toString(), updatedSprint.bugs);
+    const sprintBugIds = map(el => el._id.toString(), updatedSprint.bugs);
     const addedBugIds = map(story => story.id, bugs);
     updatedSprint.bugs = union(sprintBugIds, addedBugIds);
   }
@@ -151,8 +151,8 @@ exports.updateSprint = async (req, res, next) => {
     const updatedSprintStories = await Story.getMultipleById(req.params.projectId, sprint.stories);
     const updatedSprintBugs = await Bug.getMultipleById(req.params.projectId, sprint.bugs);
 
-    const unfinishedSprintStories = filter(el => el.state !== 'done', updatedSprintStories);
-    const unfinishedSprintBugs = filter(el => el.state !== 'done', updatedSprintStories);
+    const unfinishedSprintStories = filter(el => el.state !== 'done', updatedSprintStories || []);
+    const unfinishedSprintBugs = filter(el => el.state !== 'done', updatedSprintStories || []);
 
     const totalSprintStoryPoints = reduce(
       (acc, val) => acc + storyPoints[val.storyPoints], 0, updatedSprintStories || []);
