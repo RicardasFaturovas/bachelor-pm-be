@@ -151,8 +151,8 @@ exports.updateSprint = async (req, res, next) => {
     const updatedSprintStories = await Story.getMultipleById(req.params.projectId, sprint.stories);
     const updatedSprintBugs = await Bug.getMultipleById(req.params.projectId, sprint.bugs);
 
-    const unfinishedSprintStories = filter(el => el.state !== 'done', updatedSprintStories);
-    const unfinishedSprintBugs = filter(el => el.state !== 'done', updatedSprintStories);
+    const unfinishedSprintStories = filter(el => el.state !== 'done', updatedSprintStories || []);
+    const unfinishedSprintBugs = filter(el => el.state !== 'done', updatedSprintStories || []);
 
     const totalSprintStoryPoints = reduce(
       (acc, val) => acc + storyPoints[val.storyPoints], 0, updatedSprintStories || []);
