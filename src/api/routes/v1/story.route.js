@@ -173,6 +173,6 @@ router
    *
    * @apiError (Unauthorized 401)  Unauthorized  Only authenticated users can access the data
    */
-  .delete(authorize(), controller.removeStories);
+  .post(authorize(), controller.removeStories);
 
 module.exports = router;
