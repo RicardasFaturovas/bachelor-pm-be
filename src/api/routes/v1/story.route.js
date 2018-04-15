@@ -156,21 +156,23 @@ router
   .patch(authorize(), validate(updateStory), controller.updateStory);
 
 router
-  .route('/:storyId/delete-story')
+  .route('/:projectId/delete-stories')
   /**
-   * @api {patch} v1/stories/:storyId/delete-story Delete story
-   * @apiDescription Delete story document
+   * @api {patch} v1/stories/:projectId/delete-stories Delete stories
+   * @apiDescription Delete array of story documents
    * @apiVersion 1.0.0
-   * @apiName DeleteStory
+   * @apiName RemoveStories
    * @apiGroup Story
    * @apiPermission user
    *
    * @apiHeader {String} Authorization  Users's access token
    *
+   * @apiParam {String[]}  stories   Story ids
+   *
    * @apiSuccess (No Content 204)  Successfully deleted
    *
    * @apiError (Unauthorized 401)  Unauthorized  Only authenticated users can access the data
    */
-  .delete(authorize(), controller.removeStory);
+  .delete(authorize(), controller.removeStories);
 
 module.exports = router;

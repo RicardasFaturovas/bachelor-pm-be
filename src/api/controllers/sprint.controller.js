@@ -17,9 +17,9 @@ const Bug = require('../models/bug.model');
 const Project = require('../models/project.model');
 const { storyPoints } = require('../models/storyPoints.schema');
 
-const updateStories = async (requestStories, sprint) => {
+const updateStories = async (projectId, requestStories, sprint) => {
   const updatedSprint = sprint;
-  const stories = await Story.getMultipleById(requestStories);
+  const stories = await Story.getMultipleById(projectId, requestStories);
 
   if (stories) {
     // update stories with sprint id
@@ -34,9 +34,9 @@ const updateStories = async (requestStories, sprint) => {
   }
 };
 
-const updateBugs = async (requestBugs, sprint) => {
+const updateBugs = async (projectId, requestBugs, sprint) => {
   const updatedSprint = sprint;
-  const bugs = await Bug.getMultipleById(requestBugs);
+  const bugs = await Bug.getMultipleById(projectId, requestBugs);
 
   if (bugs) {
     // update bugs with sprint id
@@ -139,25 +139,25 @@ exports.updateSprint = async (req, res, next) => {
     const sprint = await Sprint.get(project, req.params.sprintIndicator);
 
     if (req.body.stories && req.body.stories.length) {
-      await updateStories(req.body.stories, sprint);
+      await updateStories(req.params.projectId, req.body.stories, sprint);
     }
     if (req.body.bugs && req.body.bugs.length) {
-      await updateBugs(req.body.bugs, sprint);
+      await updateBugs(req.params.projectId, req.body.bugs, sprint);
     }
 
     const dayToEdit = sprint.sprintStartDate ?
       (new Date().getDay() - sprint.sprintStartDate.getDay()) + 1 :
       1;
-    const updatedSprintStories = await Story.getMultipleById(sprint.stories);
-    const updatedSprintBugs = await Bug.getMultipleById(sprint.bugs);
+    const updatedSprintStories = await Story.getMultipleById(req.params.projectId, sprint.stories);
+    const updatedSprintBugs = await Bug.getMultipleById(req.params.projectId, sprint.bugs);
 
     const unfinishedSprintStories = filter(el => el.state !== 'done', updatedSprintStories);
     const unfinishedSprintBugs = filter(el => el.state !== 'done', updatedSprintStories);
 
     const totalSprintStoryPoints = reduce(
-      (acc, val) => acc + storyPoints[val.storyPoints], 0, updatedSprintStories);
+      (acc, val) => acc + storyPoints[val.storyPoints], 0, updatedSprintStories || []);
     const totalSprintBugPoints = reduce(
-      (acc, val) => acc + storyPoints[val.bugPoints], 0, updatedSprintBugs);
+      (acc, val) => acc + storyPoints[val.bugPoints], 0, updatedSprintBugs || []);
     const totalPoints = totalSprintStoryPoints + totalSprintBugPoints;
 
     sprint.idealSize = reduce((acc, val) =>

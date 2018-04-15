@@ -67,9 +67,8 @@ exports.list = async (req, res, next) => {
  */
 exports.getProjectList = async (req, res, next) => {
   try {
-    const { _id: creator } = req.user;
-    const queryOptions = merge(req.query, { creator });
-    const projects = await Project.list(queryOptions);
+    const { _id: user } = req.user;
+    const projects = await Project.list(user);
     const transformedProjects = map(project => project.summaryTransform(), projects);
     res.json(transformedProjects);
   } catch (error) {

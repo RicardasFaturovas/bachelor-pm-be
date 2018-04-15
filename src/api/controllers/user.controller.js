@@ -49,6 +49,19 @@ exports.getUsersByEmail = async (req, res, next) => {
   }
 };
 
+/**
+ * Get users by email in the project
+ * @public
+ */
+exports.getProjectUsersByEmail = async (req, res, next) => {
+  try {
+    const users = await User.findByEmailSubstringInProject(req.body.email, req.params.projectId);
+    res.json(map(user => user.getEmailInfo(), users));
+  } catch (error) {
+    next(error);
+  }
+};
+
 
 /**
  * Create new user
