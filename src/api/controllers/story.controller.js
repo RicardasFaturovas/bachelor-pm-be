@@ -41,9 +41,9 @@ exports.createStory = async (req, res, next) => {
     project.stories = append(story._id, project.stories);
     await project.save();
     const savedStory = await story.save();
-
+    const newStory = await Story.getForList(savedStory._id);
     res.status(httpStatus.CREATED);
-    res.json(savedStory.transform());
+    res.json(newStory.transform());
   } catch (error) {
     next(error);
   }
@@ -147,13 +147,13 @@ exports.updateStory = async (req, res, next) => {
 };
 
 /**
- * Delete story
+ * Delete stories
  * @public
  */
-exports.removeStory = async (req, res, next) => {
+exports.removeStories = async (req, res, next) => {
   try {
-    const story = await Story.get(req.params.storyId);
-    await story.remove();
+    const stories = await Story.getMultipleById(req.params.projectId, req.body.stories);
+    await Story.deleteManyById(map(story => story.id, stories));
     res.status(httpStatus.NO_CONTENT).end();
   } catch (error) {
     next(error);

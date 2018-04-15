@@ -22,7 +22,7 @@ router
    * @apiDescription Get a list of users
    * @apiVersion 1.0.0
    * @apiName ListUsers
-   * @apiGroup User
+   * @apiGroup Addmin
    * @apiPermission admin
    *
    * @apiHeader {String} Authorization  User's access token
@@ -44,7 +44,7 @@ router
    * @apiDescription Create a new user
    * @apiVersion 1.0.0
    * @apiName CreateUser
-   * @apiGroup User
+   * @apiGroup Admin
    * @apiPermission admin
    *
    * @apiHeader {String} Authorization  User's access token
@@ -60,7 +60,7 @@ router
    * @apiSuccess (Created 201) {String}  role       User's role
    * @apiSuccess (Created 201) {Date}    createdAt  Timestamp
    *
-   * @apiError (Bad Request 400)   ValidationError  Some parameters may contain invalid values
+   * @apiError (Bad Request 400)   ValidationError  Some parameters contain invalid values
    * @apiError (Unauthorized 401)  Unauthorized     Only authenticated users can create the data
    * @apiError (Forbidden 403)     Forbidden        Only admins can create the data
    */

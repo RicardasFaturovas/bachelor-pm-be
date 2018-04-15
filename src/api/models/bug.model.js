@@ -179,15 +179,23 @@ bugSchema.statics = {
   /**
    * Get multiple bugs by ids
    *
+   * @param {String[]} projectId - Id of the project to look for.
    * @param {String[]} idArray - An array of ids of the bugs.
    * @returns {Promise<Bug[], APIError>}
    */
-  async getMultipleById(idArray) {
+  async getMultipleById(projectId, idArray) {
     try {
       const bugs = await this.find({
-        _id: {
-          $in: idArray,
-        },
+        $and: [
+          {
+            _id: {
+              $in: idArray,
+            },
+          },
+          {
+            project: projectId,
+          },
+        ],
       }).exec();
 
       if (bugs.length) {

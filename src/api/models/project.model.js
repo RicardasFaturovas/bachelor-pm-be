@@ -1,6 +1,6 @@
 const mongoose = require('mongoose');
 const httpStatus = require('http-status');
-const { forEach, reject, isNil } = require('ramda');
+const { forEach } = require('ramda');
 
 const APIError = require('../utils/APIError');
 /**
@@ -122,10 +122,12 @@ projectSchema.statics = {
    *
    * @returns {Promise<Project[]>}
    */
-  list({ creator }) {
-    const options = reject(isNil, { creator });
-
-    return this.find(options)
+  list(user) {
+    return this.find({
+      users: {
+        $in: [user],
+      },
+    })
       .populate('stories', ['state'])
       .populate('sprints', ['indicator'])
       .sort({ createdAt: -1 })

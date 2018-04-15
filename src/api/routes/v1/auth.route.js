@@ -19,8 +19,8 @@ const router = express.Router();
  * @apiGroup Auth
  * @apiPermission public
  *
- * @apiParam  {String}          email     User's email
- * @apiParam  {String{6..128}}  password  User's password
+ * @apiParam  {String}  email     User's email
+ * @apiParam  {String}  password  User's password
  *
  * @apiSuccess (Created 201) {String}  token.tokenType     Access Token's type
  * @apiSuccess (Created 201) {String}  token.accessToken   Authorization Token
@@ -33,10 +33,9 @@ const router = express.Router();
  * @apiSuccess (Created 201) {String}  user.id         User's id
  * @apiSuccess (Created 201) {String}  user.name       User's name
  * @apiSuccess (Created 201) {String}  user.email      User's email
- * @apiSuccess (Created 201) {String}  user.role       User's role
  * @apiSuccess (Created 201) {Date}    user.createdAt  Timestamp
  *
- * @apiError (Bad Request 400)  ValidationError  Some parameters may contain invalid values
+ * @apiError (Bad Request 400)  ValidationError  Some parameters contain invalid values
  */
 router.route('/register')
   .post(validate(register), controller.register);
@@ -63,10 +62,9 @@ router.route('/register')
  * @apiSuccess  {String}  user.id             User's id
  * @apiSuccess  {String}  user.name           User's name
  * @apiSuccess  {String}  user.email          User's email
- * @apiSuccess  {String}  user.role           User's role
  * @apiSuccess  {Date}    user.createdAt      Timestamp
  *
- * @apiError (Bad Request 400)  ValidationError  Some parameters may contain invalid values
+ * @apiError (Bad Request 400)  ValidationError  Some parameters contain invalid values
  * @apiError (Unauthorized 401)  Unauthorized     Incorrect email or password
  */
 router.route('/login')

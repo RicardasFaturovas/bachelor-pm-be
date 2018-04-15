@@ -323,7 +323,40 @@ userSchema.statics = {
           email: { $regex: regex, $options: 'i' },
         });
       }
-      if (users.length) {
+      if (users && users.length) {
+        return users;
+      }
+      return [];
+    } catch (error) {
+      throw error;
+    }
+  },
+
+  /**
+   * List users which have a regex match in their email
+   *
+   * @param {RegExp} regex - regex to search by in email field
+   * @returns {Promise<User[]>}
+   */
+  async findByEmailSubstringInProject(regex, project) {
+    try {
+      let users;
+      if (regex !== '') {
+        users = await this.find({
+          $and: [
+            {
+              email: {
+                $regex: regex, $options: 'i' },
+            },
+            {
+              projects: {
+                $in: [project],
+              },
+            },
+          ],
+        });
+      }
+      if (users && users.length) {
         return users;
       }
       return [];

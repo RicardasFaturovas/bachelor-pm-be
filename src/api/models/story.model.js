@@ -76,6 +76,7 @@ storySchema.method({
       'code',
       'name',
       'description',
+      'storyPoints',
       'priority',
       'assignee',
       'creator',
@@ -144,7 +145,8 @@ storySchema.statics = {
     const options = reject(isNil, { code, project });
 
     return this.find(options)
-      .populate('creator', ['id', 'name', 'lastname'])
+      .populate('creator', ['id', 'name', 'lastName', 'email'])
+      .populate('assignee', ['_id', 'name', 'lastName', 'email'])
       .sort({ createdAt: -1 })
       .exec();
   },
@@ -162,6 +164,34 @@ storySchema.statics = {
           .populate('creator', ['_id', 'name', 'lastName'])
           .populate('sprint', ['_id', 'indicator'])
           .populate('tasks', ['_id', 'name', 'code', 'assignee', 'status'])
+          .exec();
+      }
+
+      if (story) {
+        return story;
+      }
+
+      throw new APIError({
+        message: 'Story does not exist',
+        status: httpStatus.NOT_FOUND,
+      });
+    } catch (error) {
+      throw error;
+    }
+  },
+
+  /**
+   * Get the story summary with assignee anc creator details
+   *
+   * @returns {Promise<Story>}
+   */
+  async getForList(id) {
+    let story;
+    try {
+      if (mongoose.Types.ObjectId.isValid(id)) {
+        story = await this.findById(id)
+          .populate('creator', ['id', 'name', 'lastName', 'email'])
+          .populate('assignee', ['_id', 'name', 'lastName', 'email'])
           .exec();
       }
 
@@ -210,18 +240,26 @@ storySchema.statics = {
   /**
    * Get multiple stories by ids
    *
+   * @param {String} projectId - Id of the project to look for.
    * @param {String[]} idArray - An array of ids of the stories.
    * @returns {Promise<Story[], APIError>}
    */
-  async getMultipleById(idArray) {
+  async getMultipleById(projectId, idArray) {
     try {
       const stories = await this.find({
-        _id: {
-          $in: idArray,
-        },
+        $and: [
+          {
+            _id: {
+              $in: idArray,
+            },
+          },
+          {
+            project: projectId,
+          },
+        ],
       }).exec();
 
-      if (stories.length) {
+      if (stories && stories.length) {
         return stories;
       }
 
@@ -259,6 +297,26 @@ storySchema.statics = {
       }
 
       return null;
+    } catch (error) {
+      throw error;
+    }
+  },
+
+  /**
+   * Get multiple stories by ids
+   *
+   * @param {String[]} idArray - An array of ids of the stories.
+   * @returns {Promise<Boolean>, APIError>}
+   */
+  async deleteManyById(idArray) {
+    try {
+      await this.deleteMany({
+        _id: {
+          $in: idArray,
+        },
+      });
+
+      return true;
     } catch (error) {
       throw error;
     }
