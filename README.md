@@ -31,12 +31,12 @@
 
 ## Getting Started
 
-Clone the repo and make it yours:
+Clone the repo and install yarn globally:
 
 ```bash
-git clone --depth 1 https://github.com/danielfsousa/express-rest-es2017-boilerplate
-cd express-rest-es2017-boilerplate
-rm -rf .git
+git clone https://github.com/RicardasFaturovas/bachelor-pm-be.git
+cd bachelor-pm-be
+npm i -g yarn
 ```
 
 Install dependencies:
