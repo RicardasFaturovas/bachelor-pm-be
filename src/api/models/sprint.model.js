@@ -193,9 +193,43 @@ sprintSchema.statics = {
           { indicator },
         ],
       })
-      .populate('stories', ['state', 'loggedTime', 'estimatedTime', 'storyPoints'])
-      .populate('bugs', ['state', 'loggedTime', 'estimatedTime', 'bugPoints'])
-      .exec();
+        .populate({
+          path: 'stories',
+          select: [
+            'name',
+            'code',
+            'assignee',
+            'priority',
+            'state',
+            'loggedTime',
+            'estimatedTime',
+            'storyPoints',
+          ],
+          populate: {
+            path: 'assignee',
+            select: ['_id', 'name', 'lastName'],
+            model: 'User',
+          },
+        })
+        .populate({
+          path: 'bugs',
+          select: [
+            'name',
+            'code',
+            'assignee',
+            'priority',
+            'state',
+            'loggedTime',
+            'estimatedTime',
+            'bugPoints',
+          ],
+          populate: {
+            path: 'assignee',
+            select: ['_id', 'name', 'lastName'],
+            model: 'User',
+          },
+        })
+        .exec();
 
       if (sprint) {
         return sprint;

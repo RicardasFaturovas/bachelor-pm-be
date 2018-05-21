@@ -253,10 +253,10 @@ bugSchema.statics = {
 
       if (mongoose.Types.ObjectId.isValid(id)) {
         bug = await this.findById(id)
-        .populate('assignee', ['_id', 'name', 'lastname'])
-        .populate('creator', ['_id', 'name', 'lastname'])
-        .populate('sprint', ['_id', 'indicator'])
-        .exec();
+          .populate('assignee', ['_id', 'name', 'lastname'])
+          .populate('creator', ['_id', 'name', 'lastname'])
+          .populate('sprint', ['_id', 'indicator'])
+          .exec();
       }
 
       if (bug) {

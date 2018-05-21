@@ -154,24 +154,28 @@ exports.updateSprint = async (req, res, next) => {
     const unfinishedSprintStories = filter(el => el.state !== 'done', updatedSprintStories || []);
     const unfinishedSprintBugs = filter(el => el.state !== 'done', updatedSprintStories || []);
 
-    const totalSprintStoryPoints = reduce(
-      (acc, val) => acc + storyPoints[val.storyPoints], 0, updatedSprintStories || []);
-    const totalSprintBugPoints = reduce(
-      (acc, val) => acc + storyPoints[val.bugPoints], 0, updatedSprintBugs || []);
+    const totalSprintStoryPoints = reduce((acc, val) =>
+      acc + storyPoints[val.storyPoints], 0, updatedSprintStories || []);
+    const totalSprintBugPoints = reduce((acc, val) =>
+      acc + storyPoints[val.bugPoints], 0, updatedSprintBugs || []);
     const totalPoints = totalSprintStoryPoints + totalSprintBugPoints;
 
-    sprint.idealSize = reduce((acc, val) =>
-      assoc([val], totalPoints - ((val - 1) * (totalPoints / (sprint.time.days - 1))), acc),
+    sprint.idealSize = reduce(
+      (acc, val) =>
+        assoc([val], totalPoints - ((val - 1) * (totalPoints / (sprint.time.days - 1))), acc),
       {},
-      times(add(1), sprint.time.days));
+      times(add(1), sprint.time.days),
+    );
 
-    const totalUnifinishedStoryPoints = reduce(
-      (acc, val) => acc + storyPoints[val.storyPoints], 0, unfinishedSprintStories);
-    const totalUnfinishedBugPoints = reduce(
-      (acc, val) => acc + storyPoints[val.bugPoints], 0, unfinishedSprintBugs);
+    const totalUnifinishedStoryPoints = reduce((acc, val) =>
+      acc + storyPoints[val.storyPoints], 0, unfinishedSprintStories);
+    const totalUnfinishedBugPoints = reduce((acc, val) =>
+      acc + storyPoints[val.bugPoints], 0, unfinishedSprintBugs);
 
-    sprint.remainingSize = Object.assign(sprint.remainingSize,
-      { [dayToEdit]: totalUnifinishedStoryPoints + totalUnfinishedBugPoints });
+    sprint.remainingSize = Object.assign(
+      sprint.remainingSize,
+      { [dayToEdit]: totalUnifinishedStoryPoints + totalUnfinishedBugPoints },
+    );
 
     if (req.body.state === 'inProgress') {
       sprint.sprintStartDate = new Date();

@@ -119,8 +119,10 @@ exports.updateStory = async (req, res, next) => {
         1;
       let currentStoryPointsLeft = pathOr(0, ['remainingSize', dayToEdit], sprint);
       currentStoryPointsLeft -= storyPoints[story.storyPoints];
-      sprint.remainingSize = Object.assign(sprint.remainingSize,
-        { [dayToEdit]: currentStoryPointsLeft });
+      sprint.remainingSize = Object.assign(
+        sprint.remainingSize,
+        { [dayToEdit]: currentStoryPointsLeft },
+      );
       await sprint.save();
     }
 
@@ -132,8 +134,10 @@ exports.updateStory = async (req, res, next) => {
         1;
       let currentStoryPointsLeft = pathOr(0, ['remainingSize', dayToEdit], sprint);
       currentStoryPointsLeft += storyPoints[story.storyPoints];
-      sprint.remainingSize = Object.assign(sprint.remainingSize,
-        { [dayToEdit]: currentStoryPointsLeft });
+      sprint.remainingSize = Object.assign(
+        sprint.remainingSize,
+        { [dayToEdit]: currentStoryPointsLeft },
+      );
       await sprint.save();
     }
 
