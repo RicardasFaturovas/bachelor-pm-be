@@ -345,8 +345,7 @@ userSchema.statics = {
         users = await this.find({
           $and: [
             {
-              email: {
-                $regex: regex, $options: 'i' },
+              email: { $regex: regex, $options: 'i' },
             },
             {
               projects: {
